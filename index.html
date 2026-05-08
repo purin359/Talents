@@ -412,9 +412,9 @@ const rarity = document.getElementById("rarityFilter").value;
   updateNpSummary(filteredCharacters);
 
   document.getElementById("countText").textContent =
-    `$${filteredCharacters.length}件表示`;
+    `${filteredCharacters.length}件表示`;
 
-  if (filtered.length === 0) {
+  if (filteredCharacters.length === 0) {
     list.innerHTML = "<p class='empty'>該当するキャラがありません。</p>";
     return;
   }
