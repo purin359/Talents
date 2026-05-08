@@ -173,7 +173,8 @@ select {
 <h1>本能一覧</h1>
 
 <div class="controls">
-  <input type="text" id="searchInput" placeholder="キャラ名・能力名で検索">
+  <input type="text" id="charSearchInput" placeholder="キャラ名で検索">
+  <input type="text" id="talentSearchInput" placeholder="本能・超本能で検索">  
 
   <select id="rarityFilter">
     <option value="">全レアリティ</option>
@@ -200,7 +201,8 @@ fetch("talents.json")
     console.error(err);
   });
 
-document.getElementById("searchInput").addEventListener("input", renderList);
+document.getElementById("charSearchInput").addEventListener("input", renderList);
+document.getElementById("talentSearchInput").addEventListener("input", renderList);
 document.getElementById("rarityFilter").addEventListener("change", renderList);
 
 function setupRarityFilter() {
@@ -222,32 +224,51 @@ function setupRarityFilter() {
 
 function renderList() {
   const list = document.getElementById("list");
-  const search = document.getElementById("searchInput").value.trim();
-  const rarity = document.getElementById("rarityFilter").value;
+  const charSearch = normalizeText(
+  document.getElementById("charSearchInput").value
+);
+
+const talentSearch = normalizeText(
+  document.getElementById("talentSearchInput").value
+);
+
+const rarity = document.getElementById("rarityFilter").value;
 
   list.innerHTML = "";
 
   const filtered = characters.filter(char => {
-    if (rarity && char["レアリティ"] !== rarity) {
-      return false;
-    }
 
-    if (!search) {
-      return true;
-    }
+  if (rarity && char["レアリティ"] !== rarity) {
+    return false;
+  }
 
-    const text = [
-      char["ID"],
-      char["キャラ名"],
-      char["レアリティ"],
-      ...(char["本能"] || []).map(t => t["能力名"]),
-      ...(char["本能"] || []).map(t => t["消費NP"]),
-      ...(char["超本能"] || []).map(t => t["能力名"]),
-      ...(char["超本能"] || []).map(t => t["消費NP"])
-    ].join(" ");
+  // キャラ検索対象
+  const charText = normalizeText([
+    char["ID"],
+    char["キャラ名"],
+    char["レアリティ"]
+  ].join(" "));
 
-    return text.includes(search);
-  });
+  // 本能検索対象
+  const talentText = normalizeText([
+    ...(char["本能"] || []).map(t => t["能力名"]),
+    ...(char["本能"] || []).map(t => t["消費NP"]),
+    ...(char["超本能"] || []).map(t => t["能力名"]),
+    ...(char["超本能"] || []).map(t => t["消費NP"])
+  ].join(" "));
+
+  // キャラ検索欄に入力がある場合
+  if (charSearch && !charText.includes(charSearch)) {
+    return false;
+  }
+
+  // 本能検索欄に入力がある場合
+  if (talentSearch && !talentText.includes(talentSearch)) {
+    return false;
+  }
+
+  return true;
+});
 
   document.getElementById("countText").textContent =
     `${filtered.length}件表示`;
@@ -310,6 +331,14 @@ function makeTalentHtml(title, talents, isSuper = false) {
   html += `</div>`;
 
   return html;
+}
+
+  function normalizeText(text) {
+  return String(text ?? "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[‐-‒–—―ー]/g, "-");
 }
 
 function escapeHtml(text) {
