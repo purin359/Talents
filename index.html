@@ -237,10 +237,20 @@ select {
 
 .talent-bottom {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   gap: 5px;
-  margin-top: 5px;
+
+  margin-top: 6px;
+}
+
+.talent-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+
+  margin-top: 6px;
 }
 
 .talent-level {
@@ -689,7 +699,9 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
           <div class="talent-np">
             ${usedNp > 0 ? `${usedNp}/${totalNp}NP` : `NP:${totalNp}`}
           </div>
+        </div>
 
+        <div class="talent-controls">
           ${controlHtml}
         </div>
       </div>
