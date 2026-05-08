@@ -201,15 +201,31 @@ select {
   .np-summary {
   background: #fff;
   border-radius: 10px;
-  padding: 10px 14px;
+  padding: 12px 16px;
   margin-bottom: 10px;
+
   box-shadow: 0 1px 5px rgba(0,0,0,0.08);
-  font-size: 15px;
-  line-height: 1.7;
+
+  display: flex;
+  gap: 20px;
+}
+
+.np-summary-left,
+.np-summary-right {
+  flex: 1;
+}
+
+.np-summary-right {
+  border-left: 1px solid #ddd;
+  padding-left: 20px;
 }
 
 .np-summary strong {
   font-size: 16px;
+}
+
+.np-summary-line {
+  margin-top: 4px;
 }
 
   .talent-check {
@@ -433,6 +449,35 @@ const rarity = document.getElementById("rarityFilter").value;
   }, 0);
 }
 
+  function getUnlockedNpTotal(targetCharacters) {
+
+  const unlocked = loadUnlockedTalents();
+
+  let total = 0;
+
+  targetCharacters.forEach(char => {
+
+    ["本能", "超本能"].forEach(title => {
+
+      const talents = char[title] || [];
+
+      talents.forEach((t, index) => {
+
+        const key = makeTalentKey(char, title, index);
+
+        if (unlocked[key]) {
+          total += sumNpText(t["消費NP"]);
+        }
+
+      });
+
+    });
+
+  });
+
+  return total;
+}
+
 function isResistanceTalent(name) {
   const text = normalizeText(name);
 
@@ -442,6 +487,7 @@ function isResistanceTalent(name) {
 }
 
 function updateNpSummary(targetCharacters) {
+
   const rarity = document.getElementById("rarityFilter").value;
   const summary = document.getElementById("npSummary");
 
@@ -449,12 +495,14 @@ function updateNpSummary(targetCharacters) {
   let totalNpWithoutResistance = 0;
 
   targetCharacters.forEach(char => {
+
     const talents = [
       ...(char["本能"] || []),
       ...(char["超本能"] || [])
     ];
 
     talents.forEach(t => {
+
       const np = sumNpText(t["消費NP"]);
       const name = t["能力名"];
 
@@ -463,15 +511,42 @@ function updateNpSummary(targetCharacters) {
       if (!isResistanceTalent(name)) {
         totalNpWithoutResistance += np;
       }
+
     });
+
   });
+
+  const unlockedNp = getUnlockedNpTotal(targetCharacters);
 
   const rarityText = rarity ? rarity : "全レアリティ";
 
   summary.innerHTML = `
-    <strong>${escapeHtml(rarityText)}</strong><br>
-    全ての本能NP合計：${totalNp.toLocaleString()} NP<br>
-    ○○耐性以外の本能NP合計：${totalNpWithoutResistance.toLocaleString()} NP
+    <div class="np-summary-left">
+
+      <strong>${escapeHtml(rarityText)}</strong>
+
+      <div class="np-summary-line">
+        全ての本能NP合計：
+        ${totalNp.toLocaleString()} NP
+      </div>
+
+      <div class="np-summary-line">
+        ○○耐性以外：
+        ${totalNpWithoutResistance.toLocaleString()} NP
+      </div>
+
+    </div>
+
+    <div class="np-summary-right">
+
+      <strong>開放済み</strong>
+
+      <div class="np-summary-line">
+        開放済みNP合計：
+        ${unlockedNp.toLocaleString()} NP
+      </div>
+
+    </div>
   `;
 }
 
@@ -593,6 +668,7 @@ function toggleTalentUnlocked(key, checked) {
   }
 
   saveUnlockedTalents(data);
+  renderList();
 }
 </script>
 
