@@ -149,8 +149,17 @@ select {
   }
 
   .name {
-    font-size: 18px;
-  }
+  font-size: 19px;
+  font-weight: bold;
+  margin-bottom: 3px;
+
+  flex: 0 1 auto;
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
   .talent {
     width: 135px;
@@ -272,8 +281,11 @@ select {
   .name-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 8px;
+
+  width: fit-content;
+  max-width: 100%;
 }
 
 .unlock-all-button {
@@ -291,8 +303,10 @@ select {
   cursor: pointer;
 
   flex-shrink: 0;
-}
 
+  margin-left: 0;
+}
+  
 .unlock-all-button:active {
   transform: scale(0.96);
 }
