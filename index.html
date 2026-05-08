@@ -504,11 +504,14 @@ const rarity = document.getElementById("rarityFilter").value;
 
   // 本能検索対象
   const talentText = normalizeText([
-    ...(char["本能"] || []).map(t => t["能力名"]),
-    ...(char["本能"] || []).map(t => t["消費NP"]),
-    ...(char["超本能"] || []).map(t => t["能力名"]),
-    ...(char["超本能"] || []).map(t => t["消費NP"])
-  ].join(" "));
+  ...(char["本能"] || []).map(t => t["能力名"]),
+  ...(char["本能"] || []).map(t => getShortTalentName(t["能力名"])),
+  ...(char["本能"] || []).map(t => t["消費NP"]),
+
+  ...(char["超本能"] || []).map(t => t["能力名"]),
+  ...(char["超本能"] || []).map(t => getShortTalentName(t["能力名"])),
+  ...(char["超本能"] || []).map(t => t["消費NP"])
+].join(" "));
 
   // キャラ検索欄に入力がある場合
   if (charSearch && !charText.includes(charSearch)) {
@@ -957,43 +960,39 @@ function makeLevelOptions(maxLevel, savedLevel) {
   return html;
 }
 
-  function getDisplayTalentName(name) {
-  if (!useShortTalentName) {
-    return name;
-  }
-
+  function getShortTalentName(name) {
   let text = String(name ?? "");
 
   const replacements = [
-  ["基本攻撃力アップ", "基礎攻撃力"],
-  ["基本体力アップ", "基礎体力"],
-  ["移動速度アップ", "移速アップ"],
+    ["基本攻撃力アップ", "基礎攻撃"],
+    ["基本体力アップ", "基礎体力"],
+    ["移動速度アップ", "移速アップ"],
 
-  ["動きを止める", "停止"],
-  ["動きを遅くする", "鈍足"],
-  ["攻撃力ダウン", "低下"],
-  ["古代の呪い", "呪い"],
+    ["動きを止める", "停止"],
+    ["動きを遅くする", "鈍足"],
+    ["攻撃力ダウン", "低下"],
+    ["古代の呪い", "呪い"],
 
-  ["攻撃力アップ", "攻撃力上昇"],
+    ["攻撃力アップ", "攻撃力上昇"],
 
-  ["バリアブレイカー", "バリブレ"],
-  ["シールドブレイカー", "シルブレ"],
+    ["バリアブレイカー", "バリブレ"],
+    ["シールドブレイカー", "シルブレ"],
 
-  ["生産コストダウン", "コストダウン"],
-  ["生産スピードアップ", "再生産短縮"],
-  ["攻撃間隔短縮", "頻度短縮"],
+    ["生産コストダウン", "コストダウン"],
+    ["生産スピードアップ", "再生産短縮"],
+    ["攻撃間隔短縮", "頻度短縮"],
 
-  ["属性を持たない敵", "属性 無属性"],
+    ["属性を持たない敵", "属性 無属性"],
 
-  ["毒撃ダメージ", "毒撃"],
-  ["波動ダメージ", "波動"],
-  ["烈波ダメージ", "烈波"],
+    ["毒撃ダメージ", "毒撃"],
+    ["波動ダメージ", "波動"],
+    ["烈波ダメージ", "烈波"],
 
-  ["波動攻撃", "波動"],
-  ["烈波攻撃", "烈波"],
-  ["爆波攻撃", "爆波"]
-];
-    
+    ["波動攻撃", "波動"],
+    ["烈波攻撃", "烈波"],
+    ["爆波攻撃", "爆波"]
+  ];
+
   replacements.forEach(([from, to]) => {
     text = text.replaceAll(from, to);
   });
@@ -1001,6 +1000,12 @@ function makeLevelOptions(maxLevel, savedLevel) {
   return text;
 }
 
+function getDisplayTalentName(name) {
+  return useShortTalentName
+    ? getShortTalentName(name)
+    : name;
+}
+  
 function toggleShortTalentName() {
   useShortTalentName = !useShortTalentName;
 
