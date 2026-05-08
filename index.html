@@ -508,9 +508,17 @@ const rarity = document.getElementById("rarityFilter").value;
           </button>
 
           <button
-            class="unlock-nonresist-button"
+            class="unlock-nonresist-button
+              ${isCharacterNonResistanceUnlocked(char)
+                ? "unlock-complete"
+                : ""}
+            "
+            data-nonresist-character-id="${escapeAttr(char["ID"])}"
             onclick="unlockNonResistanceTalents('${escapeAttr(char["ID"])}')"
-          >
+            ${isCharacterNonResistanceUnlocked(char)
+              ? "disabled"
+              : ""}
+            >
             耐性以外
           </button>
 
@@ -1097,18 +1105,102 @@ if (npText) {
   });
 }
 
+  function isCharacterNonResistanceUnlocked(char) {
+
+  const unlocked = loadUnlockedTalents();
+
+  const allTalents = [
+    ...(char["本能"] || []).map(t => ({
+      title: "本能",
+      talent: t
+    })),
+
+    ...(char["超本能"] || []).map(t => ({
+      title: "超本能",
+      talent: t
+    }))
+  ];
+
+  return allTalents
+    .filter(({ talent }) =>
+      !isResistanceTalent(talent["能力名"])
+    )
+    .every(({ title, talent }, filteredIndex) => {
+
+      const talents =
+        char[title] || [];
+
+      const talentIndex =
+        talents.indexOf(talent);
+
+      const key =
+        makeTalentKey(char, title, talentIndex);
+
+      const savedLevel =
+        Number(unlocked[key] || 0);
+
+      const maxLevel =
+        getTalentMaxLevel(char, talent);
+
+      // レベルあり
+      if (maxLevel > 0) {
+        return savedLevel >= maxLevel;
+      }
+
+      // レベルなし
+      return savedLevel > 0;
+    });
+}
+
   function updateUnlockAllButtons() {
-  document.querySelectorAll(".unlock-all-button").forEach(button => {
-    const characterId = button.dataset.characterId;
-    const char = characters.find(c => String(c["ID"]) === String(characterId));
 
-    if (!char) return;
+  // 全開放
+  document.querySelectorAll(".unlock-all-button")
+    .forEach(button => {
 
-    const fullyUnlocked = isCharacterFullyUnlocked(char);
+      const characterId =
+        button.dataset.characterId;
 
-    button.classList.toggle("unlock-complete", fullyUnlocked);
-    button.disabled = fullyUnlocked;
-  });
+      const char = characters.find(
+        c => String(c["ID"]) === String(characterId)
+      );
+
+      if (!char) return;
+
+      const fullyUnlocked =
+        isCharacterFullyUnlocked(char);
+
+      button.classList.toggle(
+        "unlock-complete",
+        fullyUnlocked
+      );
+
+      button.disabled = fullyUnlocked;
+    });
+
+  // 耐性以外
+  document.querySelectorAll(".unlock-nonresist-button")
+    .forEach(button => {
+
+      const characterId =
+        button.dataset.nonresistCharacterId;
+
+      const char = characters.find(
+        c => String(c["ID"]) === String(characterId)
+      );
+
+      if (!char) return;
+
+      const unlocked =
+        isCharacterNonResistanceUnlocked(char);
+
+      button.classList.toggle(
+        "unlock-complete",
+        unlocked
+      );
+
+      button.disabled = unlocked;
+    });
 }
 
   function refreshVisibleTalentStates() {
