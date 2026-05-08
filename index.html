@@ -211,6 +211,21 @@ select {
 .np-summary strong {
   font-size: 16px;
 }
+
+  .talent {
+  position: relative;
+}
+
+.talent-check {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+
+  width: 18px;
+  height: 18px;
+
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -371,10 +386,8 @@ const rarity = document.getElementById("rarityFilter").value;
       </div>
 
       <div class="talent-area">
-        ${makeTalentHtml("本能", char["本能"], false, talentSearch)}
-        ${char["超本能"]
-          ? makeTalentHtml("超本能", char["超本能"], true, talentSearch)
-          : ""}
+        ${makeTalentHtml("本能", char["本能"], false, talentSearch, char)}
+        ${char["超本能"] ? makeTalentHtml("超本能", char["超本能"], true, talentSearch, char) : ""}      
       </div>
     `;
 
@@ -461,23 +474,22 @@ function updateNpSummary(targetCharacters) {
   `;
 }
 
-function makeTalentHtml(title, talents, isSuper = false, talentSearch = "") {
-
+function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char = null) {
   if (!talents || talents.length === 0) {
     return "";
   }
+
+  const unlocked = loadUnlockedTalents();
 
   let html = `
     <div class="section-title">${title}</div>
     <div class="talent-row">
   `;
 
-  talents.forEach(t => {
-
+  talents.forEach((t, index) => {
     const talentName = normalizeText(t["能力名"]);
     const npText = normalizeText(t["消費NP"]);
 
-    // 検索ヒット判定
     const isHit =
       talentSearch &&
       (
@@ -485,12 +497,18 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "") {
         npText.includes(talentSearch)
       );
 
+    const key = char ? makeTalentKey(char, title, index) : "";
+    const checked = unlocked[key] ? "checked" : "";
+
     html += `
-      <div class="
-        talent
-        ${isSuper ? "super" : ""}
-        ${isHit ? "hit-talent" : ""}
-      ">
+      <div class="talent ${isSuper ? "super" : ""} ${isHit ? "hit-talent" : ""}">
+        <input
+          type="checkbox"
+          class="talent-check"
+          ${checked}
+          onchange="toggleTalentUnlocked('${escapeAttr(key)}', this.checked)"
+        >
+
         <div class="talent-name">
           ${escapeHtml(t["能力名"])}
         </div>
@@ -506,7 +524,6 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "") {
 
   return html;
 }
-
   function normalizeText(text) {
   return String(text ?? "")
     .normalize("NFKC")
@@ -524,11 +541,51 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
+  function escapeAttr(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
   function scrollToTop() {
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
+}
+
+  // 保存
+  const TALENT_SAVE_KEY = "nyanko_talent_unlocked";
+
+function loadUnlockedTalents() {
+  try {
+    return JSON.parse(localStorage.getItem(TALENT_SAVE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveUnlockedTalents(data) {
+  localStorage.setItem(TALENT_SAVE_KEY, JSON.stringify(data));
+}
+
+function makeTalentKey(char, title, index) {
+  return `${char["ID"]}_${char["キャラ名"]}_${title}_${index}`;
+}
+
+function toggleTalentUnlocked(key, checked) {
+  const data = loadUnlockedTalents();
+
+  if (checked) {
+    data[key] = true;
+  } else {
+    delete data[key];
+  }
+
+  saveUnlockedTalents(data);
 }
 </script>
 
