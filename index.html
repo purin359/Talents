@@ -192,6 +192,11 @@ select {
 #topButton:active {
   transform: scale(0.95);
 }
+
+  .hit-talent {
+  border: 3px solid #ff3b30;
+  box-sizing: border-box;
+}
 </style>
 </head>
 
@@ -327,8 +332,10 @@ const rarity = document.getElementById("rarityFilter").value;
       </div>
 
       <div class="talent-area">
-        ${makeTalentHtml("本能", char["本能"])}
-        ${char["超本能"] ? makeTalentHtml("超本能", char["超本能"], true) : ""}
+        ${makeTalentHtml("本能", char["本能"], false, talentSearch)}
+        ${char["超本能"]
+          ? makeTalentHtml("超本能", char["超本能"], true, talentSearch)
+          : ""}
       </div>
     `;
 
@@ -336,7 +343,8 @@ const rarity = document.getElementById("rarityFilter").value;
   });
 }
 
-function makeTalentHtml(title, talents, isSuper = false) {
+function makeTalentHtml(title, talents, isSuper = false, talentSearch = "") {
+
   if (!talents || talents.length === 0) {
     return "";
   }
@@ -347,10 +355,31 @@ function makeTalentHtml(title, talents, isSuper = false) {
   `;
 
   talents.forEach(t => {
+
+    const talentName = normalizeText(t["能力名"]);
+    const npText = normalizeText(t["消費NP"]);
+
+    // 検索ヒット判定
+    const isHit =
+      talentSearch &&
+      (
+        talentName.includes(talentSearch) ||
+        npText.includes(talentSearch)
+      );
+
     html += `
-      <div class="talent ${isSuper ? "super" : ""}">
-        <div class="talent-name">${escapeHtml(t["能力名"])}</div>
-        <div class="talent-np">NP:${escapeHtml(t["消費NP"])}</div>
+      <div class="
+        talent
+        ${isSuper ? "super" : ""}
+        ${isHit ? "hit-talent" : ""}
+      ">
+        <div class="talent-name">
+          ${escapeHtml(t["能力名"])}
+        </div>
+
+        <div class="talent-np">
+          NP:${escapeHtml(t["消費NP"])}
+        </div>
       </div>
     `;
   });
