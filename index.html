@@ -775,14 +775,26 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
     }
 
     html += `
-      <div class="talent ${isSuper ? "super" : ""} ${isHit ? "hit-talent" : ""}">
+      <div
+        class="talent ${isSuper ? "super" : ""} ${isHit ? "hit-talent" : ""}"
+        data-key="${escapeAttr(key)}"
+        data-char-id="${escapeAttr(char["ID"])}"
+        data-title="${escapeAttr(title)}"
+        data-index="${index}"
+      >
         <div class="talent-name">
           ${escapeHtml(t["能力名"])}
         </div>
 
         <div class="talent-bottom">
           <div class="talent-np">
-            ${usedNp > 0 ? `${usedNp}/${totalNp}NP` : `NP:${totalNp}`}
+            ${
+              maxLevel > 0 && savedLevel >= maxLevel
+                ? `NP:${totalNp}`
+                : usedNp > 0
+                  ? `${usedNp}/${totalNp}NP`
+                  : `NP:${totalNp}`
+            }
           </div>
         </div>
 
@@ -897,6 +909,31 @@ function setTalentLevel(key, level, element = null) {
       const maxLevel = Number(checkbox.dataset.maxLevel || 1);
       checkbox.checked = level >= maxLevel;
     }
+
+    const npText = box?.querySelector(".talent-np");
+
+if (npText) {
+  const charId = box.dataset.charId;
+  const title = box.dataset.title;
+  const index = Number(box.dataset.index);
+
+  const char = characters.find(c => String(c["ID"]) === String(charId));
+  const talent = char?.[title]?.[index];
+
+  if (char && talent) {
+    const totalNp = getTalentTotalNp(talent);
+    const maxLevel = getTalentMaxLevel(char, talent);
+    const usedNp = getUsedNpByLevel(char, talent, level);
+
+    if (maxLevel > 0 && level >= maxLevel) {
+      npText.textContent = `NP:${totalNp}`;
+    } else if (usedNp > 0) {
+      npText.textContent = `${usedNp}/${totalNp}NP`;
+    } else {
+      npText.textContent = `NP:${totalNp}`;
+    }
+  }
+}
   }
 
   updateNpSummary(getRarityFilteredCharacters());
@@ -938,9 +975,9 @@ function setTalentLevel(key, level, element = null) {
 
   saveUnlockedTalents(data);
 
+  refreshVisibleTalentStates();
   updateNpSummary(getRarityFilteredCharacters());
-
-  renderList();
+  updateUnlockAllButtons();
 }
 
   function isCharacterFullyUnlocked(char) {
@@ -991,6 +1028,50 @@ function setTalentLevel(key, level, element = null) {
 
     button.classList.toggle("unlock-complete", fullyUnlocked);
     button.disabled = fullyUnlocked;
+  });
+}
+
+  function refreshVisibleTalentStates() {
+  document.querySelectorAll(".talent").forEach(box => {
+    const key = box.dataset.key;
+    const charId = box.dataset.charId;
+    const title = box.dataset.title;
+    const index = Number(box.dataset.index);
+
+    const char = characters.find(c => String(c["ID"]) === String(charId));
+    if (!char) return;
+
+    const talent = char[title]?.[index];
+    if (!talent) return;
+
+    const unlocked = loadUnlockedTalents();
+    const level = Number(unlocked[key] || 0);
+
+    const totalNp = getTalentTotalNp(talent);
+    const maxLevel = getTalentMaxLevel(char, talent);
+    const usedNp = getUsedNpByLevel(char, talent, level);
+
+    const npText = box.querySelector(".talent-np");
+    const select = box.querySelector(".talent-level");
+    const checkbox = box.querySelector(".talent-check");
+
+    if (npText) {
+      if (level >= maxLevel && maxLevel > 0) {
+        npText.textContent = `NP:${totalNp}`;
+      } else if (usedNp > 0) {
+        npText.textContent = `${usedNp}/${totalNp}NP`;
+      } else {
+        npText.textContent = `NP:${totalNp}`;
+      }
+    }
+
+    if (select) {
+      select.value = String(level);
+    }
+
+    if (checkbox) {
+      checkbox.checked = maxLevel > 0 ? level >= maxLevel : level > 0;
+    }
   });
 }
 </script>
