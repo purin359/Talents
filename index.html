@@ -87,6 +87,24 @@ input, select {
   margin-bottom: 10px;
   color: #555;
 }
+
+  .talent-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.talent {
+  padding: 8px;
+  background: #f1f1f1;
+  border-radius: 8px;
+  min-width: 140px;
+  flex: 0 0 auto;
+}
+
+.super {
+  background: #fff0d6;
+}
 </style>
 </head>
 
@@ -208,24 +226,31 @@ function renderList() {
 }
 
 function makeTalentHtml(title, talents, isSuper = false) {
+
   if (!talents || talents.length === 0) {
     return "";
   }
 
-  let html = `<div class="section-title">${title}</div>`;
+  let html = `
+    <div class="section-title">${title}</div>
+    <div class="talent-row">
+  `;
 
   talents.forEach(t => {
+
     html += `
       <div class="talent ${isSuper ? "super" : ""}">
         <strong>${escapeHtml(t["能力名"])}</strong><br>
-        消費NP：${escapeHtml(t["消費NP"])}
+        NP:${escapeHtml(t["消費NP"])}
       </div>
     `;
   });
 
+  html += `</div>`;
+
   return html;
 }
-
+  
 function escapeHtml(text) {
   return String(text ?? "")
     .replace(/&/g, "&amp;")
