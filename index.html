@@ -325,6 +325,7 @@ select {
 
 <script>
 let characters = [];
+let filteredCharacters = [];
 
 fetch("talents.json")
   .then(res => res.json())
@@ -374,7 +375,7 @@ const rarity = document.getElementById("rarityFilter").value;
 
   list.innerHTML = "";
 
-  const filtered = characters.filter(char => {
+  filteredCharacters = characters.filter(char => {
 
   if (rarity && char["レアリティ"] !== rarity) {
     return false;
@@ -408,17 +409,17 @@ const rarity = document.getElementById("rarityFilter").value;
   return true;
 });
 
-  updateNpSummary(filtered);
+  updateNpSummary(filteredCharacters);
 
   document.getElementById("countText").textContent =
-    `${filtered.length}件表示`;
+    `$${filteredCharacters.length}件表示`;
 
   if (filtered.length === 0) {
     list.innerHTML = "<p class='empty'>該当するキャラがありません。</p>";
     return;
   }
 
-  filtered.forEach(char => {
+  filteredCharacters.forEach(char => {
     const card = document.createElement("div");
     card.className = "card";
 
@@ -841,7 +842,8 @@ function setTalentLevel(key, level) {
   }
 
   saveUnlockedTalents(data);
-  renderList();
+
+  updateNpSummary(filteredCharacters);
 }
 
   function unlockAllTalents(characterId) {
