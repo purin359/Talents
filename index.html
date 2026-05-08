@@ -391,6 +391,45 @@ select {
 #shortNameButton.short-on {
   background: #2196F3;
 }
+
+  #starFilterButton {
+  font-size: 16px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #666;
+  color: white;
+  cursor: pointer;
+}
+
+#starFilterButton.star-filter-on {
+  background: #f9a825;
+}
+
+.card {
+  position: relative;
+}
+
+.star-button {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+
+  border: none;
+  background: transparent;
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+  color: #bbb;
+
+  z-index: 2;
+}
+
+.star-button.star-on {
+  color: #f9a825;
+}
 </style>
 </head>
 
@@ -400,7 +439,10 @@ select {
 
 <div class="controls">
   <input type="text" id="charSearchInput" placeholder="キャラ名で検索">
-  <input type="text" id="talentSearchInput" placeholder="本能・超本能で検索">  
+  <input type="text" id="talentSearchInput" placeholder="本能・超本能で検索"> 
+  <button id="starFilterButton" onclick="toggleStarFilter()">
+    ☆表示
+  </button>
 
   <select id="rarityFilter">
     <option value="">全レアリティ</option>
@@ -425,6 +467,7 @@ select {
 let characters = [];
 let filteredCharacters = [];
 let useShortTalentName = true;
+let starFilterOnly = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -491,6 +534,10 @@ const rarity = document.getElementById("rarityFilter").value;
 
   filteredCharacters = characters.filter(char => {
 
+  if (starFilterOnly && !isCharacterStarred(char)) {
+    return false;
+  }
+
   if (rarity && char["レアリティ"] !== rarity) {
     return false;
   }
@@ -541,6 +588,14 @@ const rarity = document.getElementById("rarityFilter").value;
     card.className = "card";
 
     card.innerHTML = `
+    <button
+      class="star-button ${isCharacterStarred(char) ? "star-on" : ""}"
+      data-character-id="${escapeAttr(char["ID"])}"
+      onclick="toggleCharacterStar('${escapeAttr(char["ID"])}')"
+      title="候補にする"
+    >
+      ${isCharacterStarred(char) ? "★" : "☆"}
+    </button>
       <div class="char-header">
         <img
           class="char-img"
@@ -1137,6 +1192,72 @@ function setTalentLevel(key, level, element = null) {
 
   updateNpSummary(getRarityFilteredCharacters());
   updateUnlockAllButtons();
+}
+
+  const STAR_SAVE_KEY = "nyanko_talent_star_candidates";
+
+function loadStarCharacters() {
+  try {
+    return JSON.parse(localStorage.getItem(STAR_SAVE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStarCharacters(data) {
+  localStorage.setItem(STAR_SAVE_KEY, JSON.stringify(data));
+}
+
+function makeCharacterStarKey(char) {
+  return `${char["ID"]}_${char["キャラ名"]}`;
+}
+
+function isCharacterStarred(char) {
+  const data = loadStarCharacters();
+  return !!data[makeCharacterStarKey(char)];
+}
+
+function toggleCharacterStar(characterId) {
+  const char = characters.find(c => String(c["ID"]) === String(characterId));
+  if (!char) return;
+
+  const data = loadStarCharacters();
+  const key = makeCharacterStarKey(char);
+
+  if (data[key]) {
+    delete data[key];
+  } else {
+    data[key] = true;
+  }
+
+  saveStarCharacters(data);
+
+  const button = document.querySelector(
+    `.star-button[data-character-id="${CSS.escape(String(characterId))}"]`
+  );
+
+  if (button) {
+    const on = !!data[key];
+    button.classList.toggle("star-on", on);
+    button.textContent = on ? "★" : "☆";
+  }
+
+  if (starFilterOnly) {
+    renderList();
+  }
+}
+
+function toggleStarFilter() {
+  starFilterOnly = !starFilterOnly;
+
+  const button = document.getElementById("starFilterButton");
+
+  button.classList.toggle("star-filter-on", starFilterOnly);
+  button.textContent = starFilterOnly
+    ? "★ 星のみON"
+    : "☆ 星のみOFF";
+
+  renderList();
 }
 
   function updateTalentBoxColor(box, level, maxLevel) {
