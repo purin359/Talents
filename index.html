@@ -1328,6 +1328,8 @@ function toggleCharacterStar(characterId) {
     button.textContent = on ? "★" : "☆";
   }
 
+  updateNpSummary(getRarityFilteredCharacters());
+
   if (starFilterOnly) {
     renderList();
   }
