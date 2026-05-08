@@ -789,12 +789,10 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
         <div class="talent-bottom">
           <div class="talent-np">
             ${
-              maxLevel > 0 && savedLevel >= maxLevel
-                ? `NP:${totalNp}`
-                : usedNp > 0
-                  ? `${usedNp}/${totalNp}NP`
-                  : `NP:${totalNp}`
-            }
+              maxLevel > 0 && savedLevel > 0 && savedLevel < maxLevel
+                ? `${usedNp}/${totalNp}NP`
+                : `NP:${totalNp}`
+              }
           </div>
         </div>
 
@@ -925,9 +923,7 @@ if (npText) {
     const maxLevel = getTalentMaxLevel(char, talent);
     const usedNp = getUsedNpByLevel(char, talent, level);
 
-    if (maxLevel > 0 && level >= maxLevel) {
-      npText.textContent = `NP:${totalNp}`;
-    } else if (usedNp > 0) {
+    if (maxLevel > 0 && level > 0 && level < maxLevel) {
       npText.textContent = `${usedNp}/${totalNp}NP`;
     } else {
       npText.textContent = `NP:${totalNp}`;
@@ -1056,9 +1052,7 @@ if (npText) {
     const checkbox = box.querySelector(".talent-check");
 
     if (npText) {
-      if (level >= maxLevel && maxLevel > 0) {
-        npText.textContent = `NP:${totalNp}`;
-      } else if (usedNp > 0) {
+      if (maxLevel > 0 && level > 0 && level < maxLevel) {
         npText.textContent = `${usedNp}/${totalNp}NP`;
       } else {
         npText.textContent = `NP:${totalNp}`;
