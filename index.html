@@ -1013,6 +1013,30 @@ function setTalentLevel(key, level, element = null) {
       checkbox.checked = level >= maxLevel;
     }
 
+    // 色更新
+box.classList.remove(
+  "talent-max",
+  "talent-partial"
+);
+
+if (level > 0) {
+
+  // レベルあり
+  if (maxLevel > 0) {
+
+    if (level >= maxLevel) {
+      box.classList.add("talent-max");
+    } else {
+      box.classList.add("talent-partial");
+    }
+
+  }
+  // レベルなし
+  else {
+    box.classList.add("talent-max");
+  }
+}
+
     const npText = box?.querySelector(".talent-np");
 
 if (npText) {
