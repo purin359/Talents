@@ -341,6 +341,25 @@ select {
 .unlock-nonresist-button:active {
   transform: scale(0.96);
 }
+
+  .reset-talents-button {
+  border: none;
+  border-radius: 7px;
+
+  background: #e53935;
+  color: white;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  padding: 5px 10px;
+
+  cursor: pointer;
+}
+
+.reset-talents-button:active {
+  transform: scale(0.96);
+}
 </style>
 </head>
 
@@ -520,6 +539,13 @@ const rarity = document.getElementById("rarityFilter").value;
               : ""}
             >
             耐性以外
+          </button>
+
+          <button
+            class="reset-talents-button"
+            onclick="resetCharacterTalents('${escapeAttr(char["ID"])}')"
+          >
+            リセット
           </button>
 
         </div>
@@ -1243,6 +1269,38 @@ if (npText) {
       checkbox.checked = maxLevel > 0 ? level >= maxLevel : level > 0;
     }
   });
+}
+
+  function resetCharacterTalents(characterId) {
+
+  const char = characters.find(
+    c => String(c["ID"]) === String(characterId)
+  );
+
+  if (!char) return;
+
+  const ok = confirm(
+    `${char["キャラ名"]} の本能開放状況をリセットしますか？`
+  );
+
+  if (!ok) return;
+
+  const data = loadUnlockedTalents();
+
+  ["本能", "超本能"].forEach(title => {
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+      const key = makeTalentKey(char, title, index);
+      delete data[key];
+    });
+  });
+
+  saveUnlockedTalents(data);
+
+  refreshVisibleTalentStates();
+  updateNpSummary(getRarityFilteredCharacters());
+  updateUnlockAllButtons();
 }
 </script>
 
