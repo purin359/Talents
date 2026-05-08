@@ -344,7 +344,7 @@ const rarity = document.getElementById("rarityFilter").value;
         <div class="char-info">
           <div class="name">${escapeHtml(char["キャラ名"])}</div>
           <div class="meta">
-            ID: ${escapeHtml(char["ID"])} / ${escapeHtml(char["レアリティ"])}
+            合計NP：${getCharacterTotalNp(char).toLocaleString()} NP
           </div>
         </div>
       </div>
@@ -367,6 +367,17 @@ const rarity = document.getElementById("rarityFilter").value;
     .map(v => Number(v.trim()))
     .filter(v => !isNaN(v))
     .reduce((sum, v) => sum + v, 0);
+}
+
+  function getCharacterTotalNp(char) {
+  const talents = [
+    ...(char["本能"] || []),
+    ...(char["超本能"] || [])
+  ];
+
+  return talents.reduce((sum, t) => {
+    return sum + sumNpText(t["消費NP"]);
+  }, 0);
 }
 
 function isResistanceTalent(name) {
