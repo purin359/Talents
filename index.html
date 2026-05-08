@@ -22,20 +22,30 @@ h1 {
   margin-bottom: 15px;
 }
 
-input, select {
+input,
+select {
   font-size: 16px;
   padding: 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
 }
 
+.count {
+  margin-bottom: 10px;
+  color: #555;
+}
+
 .card {
   background: white;
   border-radius: 12px;
-  padding: 14px;
+  padding: 14px 18px;
   margin-bottom: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.char-header {
   display: flex;
+  align-items: flex-start;
   gap: 14px;
 }
 
@@ -46,7 +56,7 @@ input, select {
   flex-shrink: 0;
 }
 
-.info {
+.char-info {
   flex: 1;
 }
 
@@ -58,14 +68,15 @@ input, select {
 
 .meta {
   color: #666;
-  margin-bottom: 10px;
+}
+
+.talent-area {
+  margin-top: 8px;
 }
 
 .section-title {
   font-weight: bold;
-  margin-top: 8px;
-  margin-bottom: 4px;
-  color: #333;
+  margin: 8px 0 6px;
 }
 
 .talent-row {
@@ -76,10 +87,9 @@ input, select {
   overflow-x: auto;
   overflow-y: hidden;
 
-  padding: 4px 2px 8px;
+  padding: 4px 2px 10px;
 }
 
-/* スクロールバー */
 .talent-row::-webkit-scrollbar {
   height: 8px;
 }
@@ -89,16 +99,13 @@ input, select {
   border-radius: 999px;
 }
 
-/* 本能カード */
 .talent {
-  width: 150px;
-  height: 72px;
-
+  width: 145px;
+  height: 70px;
   flex: 0 0 auto;
 
   background: #f1f1f1;
   border-radius: 10px;
-
   padding: 8px;
 
   display: flex;
@@ -107,36 +114,64 @@ input, select {
   align-items: center;
 
   text-align: center;
-
   box-sizing: border-box;
-
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-/* 超本能 */
 .super {
   background: #fff0d6;
 }
 
-/* 能力名 */
 .talent-name {
   font-size: 14px;
   font-weight: bold;
-
   line-height: 1.2;
-
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-
-  overflow: hidden;
 }
 
-/* NP */
 .talent-np {
   margin-top: 6px;
   font-size: 13px;
   color: #555;
+}
+
+.empty {
+  color: #999;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .char-img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .name {
+    font-size: 18px;
+  }
+
+  .talent {
+    width: 135px;
+    height: 68px;
+  }
+
+  .talent-name {
+    font-size: 13px;
+  }
+
+  .talent-np {
+    font-size: 12px;
+  }
 }
 </style>
 </head>
@@ -169,7 +204,7 @@ fetch("talents.json")
   })
   .catch(err => {
     document.getElementById("list").innerHTML =
-      "<p>talents.json を読み込めませんでした。</p>";
+      "<p class='empty'>talents.json を読み込めませんでした。</p>";
     console.error(err);
   });
 
@@ -234,32 +269,34 @@ function renderList() {
     const card = document.createElement("div");
     card.className = "card";
 
-    const img = document.createElement("img");
-    img.className = "char-img";
-    img.src = char["画像名"];
-    img.alt = char["キャラ名"];
-    img.onerror = () => {
-      img.src = "image/noimage.png";
-    };
+    card.innerHTML = `
+      <div class="char-header">
+        <img
+          class="char-img"
+          src="${escapeHtml(char["画像名"])}"
+          alt="${escapeHtml(char["キャラ名"])}"
+          onerror="this.src='image/noimage.png'"
+        >
 
-    const info = document.createElement("div");
-    info.className = "info";
+        <div class="char-info">
+          <div class="name">${escapeHtml(char["キャラ名"])}</div>
+          <div class="meta">
+            ID: ${escapeHtml(char["ID"])} / ${escapeHtml(char["レアリティ"])}
+          </div>
+        </div>
+      </div>
 
-    info.innerHTML = `
-      <div class="name">${escapeHtml(char["キャラ名"])}</div>
-      <div class="meta">ID: ${escapeHtml(char["ID"])} / ${escapeHtml(char["レアリティ"])}</div>
-      ${makeTalentHtml("本能", char["本能"])}
-      ${char["超本能"] ? makeTalentHtml("超本能", char["超本能"], true) : ""}
+      <div class="talent-area">
+        ${makeTalentHtml("本能", char["本能"])}
+        ${char["超本能"] ? makeTalentHtml("超本能", char["超本能"], true) : ""}
+      </div>
     `;
 
-    card.appendChild(img);
-    card.appendChild(info);
     list.appendChild(card);
   });
 }
 
 function makeTalentHtml(title, talents, isSuper = false) {
-
   if (!talents || talents.length === 0) {
     return "";
   }
@@ -270,16 +307,10 @@ function makeTalentHtml(title, talents, isSuper = false) {
   `;
 
   talents.forEach(t => {
-
     html += `
       <div class="talent ${isSuper ? "super" : ""}">
-        <div class="talent-name">
-          ${escapeHtml(t["能力名"])}
-        </div>
-
-        <div class="talent-np">
-          NP:${escapeHtml(t["消費NP"])}
-        </div>
+        <div class="talent-name">${escapeHtml(t["能力名"])}</div>
+        <div class="talent-np">NP:${escapeHtml(t["消費NP"])}</div>
       </div>
     `;
   });
@@ -288,7 +319,7 @@ function makeTalentHtml(title, talents, isSuper = false) {
 
   return html;
 }
-  
+
 function escapeHtml(text) {
   return String(text ?? "")
     .replace(/&/g, "&amp;")
