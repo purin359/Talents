@@ -267,6 +267,34 @@ select {
   height: 16px;
   cursor: pointer;
 }
+
+  .name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.unlock-all-button {
+  border: none;
+  border-radius: 7px;
+
+  background: #4CAF50;
+  color: white;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  padding: 5px 10px;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+.unlock-all-button:active {
+  transform: scale(0.96);
+}
 </style>
 </head>
 
@@ -398,7 +426,20 @@ const rarity = document.getElementById("rarityFilter").value;
         >
 
         <div class="char-info">
-          <div class="name">${escapeHtml(char["キャラ名"])}</div>
+          <div class="name-row">
+
+            <div class="name">
+              ${escapeHtml(char["キャラ名"])}
+            </div>
+
+            <button
+              class="unlock-all-button"
+              onclick="unlockAllTalents('${escapeAttr(char["ID"])}')"
+            >
+              全開放
+            </button>
+
+          </div>
           <div class="meta">
             ${(() => {
 
@@ -791,6 +832,44 @@ function setTalentLevel(key, level) {
   }
 
   saveUnlockedTalents(data);
+  renderList();
+}
+
+  function unlockAllTalents(characterId) {
+
+  const data = loadUnlockedTalents();
+
+  const char = characters.find(c => String(c["ID"]) === String(characterId));
+
+  if (!char) {
+    return;
+  }
+
+  ["本能", "超本能"].forEach(title => {
+
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+
+      const key = makeTalentKey(char, title, index);
+
+      const maxLevel = getTalentMaxLevel(char, talent);
+
+      // レベルあり → MAX
+      if (maxLevel > 0) {
+        data[key] = maxLevel;
+      }
+      // レベルなし → ON
+      else {
+        data[key] = 1;
+      }
+
+    });
+
+  });
+
+  saveUnlockedTalents(data);
+
   renderList();
 }
 </script>
