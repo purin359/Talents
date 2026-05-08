@@ -243,6 +243,20 @@ select {
 
   margin-top: 5px;
 }
+
+  .talent-level {
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  border: 1px solid #aaa;
+  background: white;
+}
+
+.talent-check {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
 </style>
 </head>
 
@@ -420,6 +434,69 @@ const rarity = document.getElementById("rarityFilter").value;
     .reduce((sum, v) => sum + v, 0);
 }
 
+  function parseNpArray(npText) {
+  return String(npText ?? "")
+    .split(",")
+    .map(v => Number(v.trim()))
+    .filter(v => !isNaN(v));
+}
+
+// レアリティ別・合計NP別のレベル消費NP表
+function getLevelNpList(rarity, totalNp) {
+  const table = {
+    "EX": {
+      125: [10,10,10,10,10,15,15,15,15,15],
+      165: [50,10,10,10,10,15,15,15,15,15],
+      175: [15,15,15,15,15,20,20,20,20,20],
+      215: [75,10,10,10,10,20,20,20,20,20],
+      235: [75,15,15,15,15,20,20,20,20,20]
+    },
+    "レア": {
+      25: [5,5,5,5,5],
+      75: [5,5,5,5,5,10,10,10,10,10],
+      95: [25,5,5,5,5,10,10,10,10,10]
+    },
+    "激レア": {
+      125: [10,10,10,10,10,15,15,15,15,15],
+      165: [50,10,10,10,10,15,15,15,15,15]
+    },
+    "超激レア": {
+      175: [15,15,15,15,15,20,20,20,20,20],
+      225: [20,20,20,20,20,25,25,25,25,25],
+      235: [75,15,15,15,15,20,20,20,20,20],
+      285: [100,15,15,15,15,25,25,25,25,25],
+      355: [150,20,20,20,20,25,25,25,25,25]
+    }
+  };
+
+  return table[rarity]?.[totalNp] || null;
+}
+
+function getTalentTotalNp(talent) {
+  return sumNpText(talent["消費NP"]);
+}
+
+function getTalentMaxLevel(char, talent) {
+  const totalNp = getTalentTotalNp(talent);
+  const levelList = getLevelNpList(char["レアリティ"], totalNp);
+
+  return levelList ? levelList.length : 0;
+}
+
+function getUsedNpByLevel(char, talent, level) {
+  const totalNp = getTalentTotalNp(talent);
+  const levelList = getLevelNpList(char["レアリティ"], totalNp);
+
+  // レベルなし本能
+  if (!levelList) {
+    return level > 0 ? totalNp : 0;
+  }
+
+  return levelList
+    .slice(0, level)
+    .reduce((sum, v) => sum + v, 0);
+}
+
   function getCharacterTotalNp(char) {
   const talents = [
     ...(char["本能"] || []),
@@ -450,29 +527,21 @@ const rarity = document.getElementById("rarityFilter").value;
 }
 
   function getUnlockedNpTotal(targetCharacters) {
-
   const unlocked = loadUnlockedTalents();
 
   let total = 0;
 
   targetCharacters.forEach(char => {
-
     ["本能", "超本能"].forEach(title => {
-
       const talents = char[title] || [];
 
       talents.forEach((t, index) => {
-
         const key = makeTalentKey(char, title, index);
+        const level = Number(unlocked[key] || 0);
 
-        if (unlocked[key]) {
-          total += sumNpText(t["消費NP"]);
-        }
-
+        total += getUsedNpByLevel(char, t, level);
       });
-
     });
-
   });
 
   return total;
@@ -574,31 +643,48 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
       );
 
     const key = char ? makeTalentKey(char, title, index) : "";
-    const checked = unlocked[key] ? "checked" : "";
+    const savedLevel = Number(unlocked[key] || 0);
+
+    const maxLevel = char ? getTalentMaxLevel(char, t) : 0;
+    const totalNp = getTalentTotalNp(t);
+    const usedNp = char ? getUsedNpByLevel(char, t, savedLevel) : 0;
+
+    let controlHtml = "";
+
+    if (maxLevel > 0) {
+      controlHtml = `
+        <select
+          class="talent-level"
+          onchange="setTalentLevel('${escapeAttr(key)}', this.value)"
+        >
+          ${makeLevelOptions(maxLevel, savedLevel)}
+        </select>
+      `;
+    } else {
+      controlHtml = `
+        <input
+          type="checkbox"
+          class="talent-check"
+          ${savedLevel > 0 ? "checked" : ""}
+          onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? 1 : 0)"
+        >
+      `;
+    }
 
     html += `
       <div class="talent ${isSuper ? "super" : ""} ${isHit ? "hit-talent" : ""}">
+        <div class="talent-name">
+          ${escapeHtml(t["能力名"])}
+        </div>
 
-  <div class="talent-name">
-    ${escapeHtml(t["能力名"])}
-  </div>
+        <div class="talent-bottom">
+          <div class="talent-np">
+            ${usedNp > 0 ? `${usedNp}/${totalNp}NP` : `NP:${totalNp}`}
+          </div>
 
-  <div class="talent-bottom">
-
-    <div class="talent-np">
-      NP:${escapeHtml(t["消費NP"])}
-    </div>
-
-    <input
-      type="checkbox"
-      class="talent-check"
-      ${checked}
-      onchange="toggleTalentUnlocked('${escapeAttr(key)}', this.checked)"
-    >
-
-  </div>
-
-</div>
+          ${controlHtml}
+        </div>
+      </div>
     `;
   });
 
@@ -606,6 +692,21 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
 
   return html;
 }
+
+function makeLevelOptions(maxLevel, savedLevel) {
+  let html = `<option value="0">未</option>`;
+
+  for (let i = 1; i <= maxLevel; i++) {
+    html += `
+      <option value="${i}" ${i === savedLevel ? "selected" : ""}>
+        Lv${i}
+      </option>
+    `;
+  }
+
+  return html;
+}
+  
   function normalizeText(text) {
   return String(text ?? "")
     .normalize("NFKC")
@@ -658,11 +759,13 @@ function makeTalentKey(char, title, index) {
   return `${char["ID"]}_${char["キャラ名"]}_${title}_${index}`;
 }
 
-function toggleTalentUnlocked(key, checked) {
+function setTalentLevel(key, level) {
   const data = loadUnlockedTalents();
 
-  if (checked) {
-    data[key] = true;
+  level = Number(level);
+
+  if (level > 0) {
+    data[key] = level;
   } else {
     delete data[key];
   }
