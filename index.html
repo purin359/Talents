@@ -239,17 +239,17 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-
+  gap: 5px;
   margin-top: 5px;
 }
 
-  .talent-level {
+.talent-level {
   font-size: 11px;
-  padding: 2px 4px;
+  padding: 2px 3px;
   border-radius: 5px;
   border: 1px solid #aaa;
   background: white;
+  max-width: 54px;
 }
 
 .talent-check {
@@ -652,15 +652,23 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
     let controlHtml = "";
 
     if (maxLevel > 0) {
-      controlHtml = `
-        <select
-          class="talent-level"
-          onchange="setTalentLevel('${escapeAttr(key)}', this.value)"
-        >
-          ${makeLevelOptions(maxLevel, savedLevel)}
-        </select>
-      `;
-    } else {
+  controlHtml = `
+    <select
+      class="talent-level"
+      onchange="setTalentLevel('${escapeAttr(key)}', this.value)"
+    >
+      ${makeLevelOptions(maxLevel, savedLevel)}
+    </select>
+
+    <input
+      type="checkbox"
+      class="talent-check"
+      ${savedLevel === maxLevel ? "checked" : ""}
+      onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? ${maxLevel} : 0)"
+      title="MAX"
+    >
+  `;
+} else {
       controlHtml = `
         <input
           type="checkbox"
