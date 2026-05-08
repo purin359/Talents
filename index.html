@@ -360,6 +360,23 @@ select {
 .reset-talents-button:active {
   transform: scale(0.96);
 }
+
+  .talent-partial {
+  background: #dff5d8 !important;
+}
+
+.talent-max {
+  background: #d9f0ff !important;
+}
+
+/* 超本能用 */
+.super.talent-partial {
+  background: #d8f5c8 !important;
+}
+
+.super.talent-max {
+  background: #cfeeff !important;
+}
 </style>
 </head>
 
@@ -846,7 +863,25 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
 
     html += `
       <div
-        class="talent ${isSuper ? "super" : ""} ${isHit ? "hit-talent" : ""}"
+  class="
+    talent
+    ${isSuper ? "super" : ""}
+    ${isHit ? "hit-talent" : ""}
+
+    ${
+      savedLevel > 0
+        ? (
+            maxLevel > 0
+              ? (
+                  savedLevel >= maxLevel
+                    ? "talent-max"
+                    : "talent-partial"
+                )
+              : "talent-max"
+          )
+        : ""
+    }
+  "
         data-key="${escapeAttr(key)}"
         data-char-id="${escapeAttr(char["ID"])}"
         data-title="${escapeAttr(title)}"
