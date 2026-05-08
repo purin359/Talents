@@ -316,6 +316,31 @@ select {
   cursor: default;
   opacity: 0.8;
 }
+
+  .unlock-buttons {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.unlock-nonresist-button {
+  border: none;
+  border-radius: 7px;
+
+  background: #ff9800;
+  color: white;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  padding: 5px 10px;
+
+  cursor: pointer;
+}
+
+.unlock-nonresist-button:active {
+  transform: scale(0.96);
+}
 </style>
 </head>
 
@@ -469,8 +494,10 @@ const rarity = document.getElementById("rarityFilter").value;
               ${escapeHtml(char["キャラ名"])}
             </div>
 
+            <div class="unlock-buttons">
+
             <button
-            class="unlock-all-button
+              class="unlock-all-button
               ${isCharacterFullyUnlocked(char) ? "unlock-complete" : ""}
             "
             data-character-id="${escapeAttr(char["ID"])}"
@@ -479,6 +506,15 @@ const rarity = document.getElementById("rarityFilter").value;
           >
             全開放
           </button>
+
+          <button
+            class="unlock-nonresist-button"
+            onclick="unlockNonResistanceTalents('${escapeAttr(char["ID"])}')"
+          >
+            耐性以外
+          </button>
+
+        </div>
 
           </div>
           <div class="meta">
@@ -961,6 +997,54 @@ if (npText) {
         data[key] = maxLevel;
       }
       // レベルなし → ON
+      else {
+        data[key] = 1;
+      }
+
+    });
+
+  });
+
+  saveUnlockedTalents(data);
+
+  refreshVisibleTalentStates();
+  updateNpSummary(getRarityFilteredCharacters());
+  updateUnlockAllButtons();
+}
+
+  function unlockNonResistanceTalents(characterId) {
+
+  const data = loadUnlockedTalents();
+
+  const char = characters.find(
+    c => String(c["ID"]) === String(characterId)
+  );
+
+  if (!char) {
+    return;
+  }
+
+  ["本能", "超本能"].forEach(title => {
+
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+
+      // 耐性は除外
+      if (isResistanceTalent(talent["能力名"])) {
+        return;
+      }
+
+      const key = makeTalentKey(char, title, index);
+
+      const maxLevel =
+        getTalentMaxLevel(char, talent);
+
+      // レベルあり
+      if (maxLevel > 0) {
+        data[key] = maxLevel;
+      }
+      // レベルなし
       else {
         data[key] = 1;
       }
