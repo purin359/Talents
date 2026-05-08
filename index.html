@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>本能一覧１</title>
+<title>本能一覧</title>
 
 <style>
 body {
@@ -1004,65 +1004,66 @@ function setTalentLevel(key, level, element = null) {
     const select = box?.querySelector(".talent-level");
     const checkbox = box?.querySelector(".talent-check");
 
+    const maxLevel = checkbox
+      ? Number(checkbox.dataset.maxLevel || 0)
+      : 0;
+
     if (select) {
       select.value = String(level);
     }
 
     if (checkbox) {
-      const maxLevel = Number(checkbox.dataset.maxLevel || 1);
-      checkbox.checked = level >= maxLevel;
+      checkbox.checked = maxLevel > 0
+        ? level >= maxLevel
+        : level > 0;
     }
 
-    // 色更新
-box.classList.remove(
-  "talent-max",
-  "talent-partial"
-);
+    updateTalentBoxColor(box, level, maxLevel);
 
-if (level > 0) {
+    const npText = box?.querySelector(".talent-np");
 
-  // レベルあり
+    if (npText) {
+      const charId = box.dataset.charId;
+      const title = box.dataset.title;
+      const index = Number(box.dataset.index);
+
+      const char = characters.find(c => String(c["ID"]) === String(charId));
+      const talent = char?.[title]?.[index];
+
+      if (char && talent) {
+        const totalNp = getTalentTotalNp(talent);
+        const trueMaxLevel = getTalentMaxLevel(char, talent);
+        const usedNp = getUsedNpByLevel(char, talent, level);
+
+        if (trueMaxLevel > 0 && level > 0 && level < trueMaxLevel) {
+          npText.textContent = `${usedNp}/${totalNp}NP`;
+        } else {
+          npText.textContent = `NP:${totalNp}`;
+        }
+      }
+    }
+  }
+
+  updateNpSummary(getRarityFilteredCharacters());
+  updateUnlockAllButtons();
+}
+
+  function updateTalentBoxColor(box, level, maxLevel) {
+  if (!box) return;
+
+  box.classList.remove("talent-max", "talent-partial");
+
+  if (level <= 0) return;
+
   if (maxLevel > 0) {
-
     if (level >= maxLevel) {
       box.classList.add("talent-max");
     } else {
       box.classList.add("talent-partial");
     }
-
-  }
-  // レベルなし
-  else {
+  } else {
     box.classList.add("talent-max");
   }
-}
-
-    const npText = box?.querySelector(".talent-np");
-
-if (npText) {
-  const charId = box.dataset.charId;
-  const title = box.dataset.title;
-  const index = Number(box.dataset.index);
-
-  const char = characters.find(c => String(c["ID"]) === String(charId));
-  const talent = char?.[title]?.[index];
-
-  if (char && talent) {
-    const totalNp = getTalentTotalNp(talent);
-    const maxLevel = getTalentMaxLevel(char, talent);
-    const usedNp = getUsedNpByLevel(char, talent, level);
-
-    if (maxLevel > 0 && level > 0 && level < maxLevel) {
-      npText.textContent = `${usedNp}/${totalNp}NP`;
-    } else {
-      npText.textContent = `NP:${totalNp}`;
-    }
-  }
-}
-  }
-
-  updateNpSummary(getRarityFilteredCharacters());
-  updateUnlockAllButtons();
 }
   
   function unlockAllTalents(characterId) {
@@ -1327,6 +1328,8 @@ if (npText) {
     if (checkbox) {
       checkbox.checked = maxLevel > 0 ? level >= maxLevel : level > 0;
     }
+
+    updateTalentBoxColor(box, level, maxLevel);
   });
 }
 
