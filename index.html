@@ -219,12 +219,11 @@ select {
   gap: 20px;
 }
 
-.np-summary-left,
-.np-summary-right {
+.np-summary-column {
   flex: 1;
 }
 
-.np-summary-right {
+.np-summary-column + .np-summary-column {
   border-left: 1px solid #ddd;
   padding-left: 20px;
 }
@@ -807,6 +806,68 @@ function getUsedNpByLevel(char, talent, level) {
   return total;
 }
 
+  function getRemainingNpForStarredCharacters(targetCharacters) {
+
+  let totalNp = 0;
+  let nonResistanceNp = 0;
+
+  const unlocked = loadUnlockedTalents();
+
+  targetCharacters.forEach(char => {
+
+    // 星なしは除外
+    if (!isCharacterStarred(char)) {
+      return;
+    }
+
+    ["本能", "超本能"].forEach(title => {
+
+      const talents = char[title] || [];
+
+      talents.forEach((talent, index) => {
+
+        const key =
+          makeTalentKey(char, title, index);
+
+        const savedLevel =
+          Number(unlocked[key] || 0);
+
+        const totalTalentNp =
+          getTalentTotalNp(talent);
+
+        const maxLevel =
+          getTalentMaxLevel(char, talent);
+
+        const usedNp =
+          getUsedNpByLevel(char, talent, savedLevel);
+
+        // 残りNP
+        const remainNp =
+          totalTalentNp - usedNp;
+
+        // 既にMAXなら除外
+        if (remainNp <= 0) {
+          return;
+        }
+
+        totalNp += remainNp;
+
+        if (!isResistanceTalent(talent["能力名"])) {
+          nonResistanceNp += remainNp;
+        }
+
+      });
+
+    });
+
+  });
+
+  return {
+    totalNp,
+    nonResistanceNp
+  };
+}
+
 function isResistanceTalent(name) {
   const text = normalizeText(name);
 
@@ -817,8 +878,11 @@ function isResistanceTalent(name) {
 
 function updateNpSummary(targetCharacters) {
 
-  const rarity = document.getElementById("rarityFilter").value;
-  const summary = document.getElementById("npSummary");
+  const rarity =
+    document.getElementById("rarityFilter").value;
+
+  const summary =
+    document.getElementById("npSummary");
 
   let totalNp = 0;
   let totalNpWithoutResistance = 0;
@@ -832,12 +896,12 @@ function updateNpSummary(targetCharacters) {
 
     talents.forEach(t => {
 
-      const np = sumNpText(t["消費NP"]);
-      const name = t["能力名"];
+      const np =
+        sumNpText(t["消費NP"]);
 
       totalNp += np;
 
-      if (!isResistanceTalent(name)) {
+      if (!isResistanceTalent(t["能力名"])) {
         totalNpWithoutResistance += np;
       }
 
@@ -845,12 +909,18 @@ function updateNpSummary(targetCharacters) {
 
   });
 
-  const unlockedNp = getUnlockedNpTotal(targetCharacters);
+  const unlockedNp =
+    getUnlockedNpTotal(targetCharacters);
 
-  const rarityText = rarity ? rarity : "全レアリティ";
+  const starredRemain =
+    getRemainingNpForStarredCharacters(targetCharacters);
+
+  const rarityText =
+    rarity ? rarity : "全レアリティ";
 
   summary.innerHTML = `
-    <div class="np-summary-left">
+
+    <div class="np-summary-column">
 
       <strong>${escapeHtml(rarityText)}</strong>
 
@@ -866,7 +936,23 @@ function updateNpSummary(targetCharacters) {
 
     </div>
 
-    <div class="np-summary-right">
+    <div class="np-summary-column">
+
+      <strong>開けたいキャラ</strong>
+
+      <div class="np-summary-line">
+        全ての本能NP合計：
+        ${starredRemain.totalNp.toLocaleString()} NP
+      </div>
+
+      <div class="np-summary-line">
+        耐性以外：
+        ${starredRemain.nonResistanceNp.toLocaleString()} NP
+      </div>
+
+    </div>
+
+    <div class="np-summary-column">
 
       <strong>
         開放済み${rarity ? `（${escapeHtml(rarity)}）` : ""}
