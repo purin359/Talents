@@ -295,6 +295,12 @@ select {
 .unlock-all-button:active {
   transform: scale(0.96);
 }
+
+  .unlock-complete {
+  background: #999 !important;
+  cursor: default;
+  opacity: 0.8;
+}
 </style>
 </head>
 
@@ -433,11 +439,14 @@ const rarity = document.getElementById("rarityFilter").value;
             </div>
 
             <button
-              class="unlock-all-button"
-              onclick="unlockAllTalents('${escapeAttr(char["ID"])}')"
-            >
-              全開放
-            </button>
+            class="unlock-all-button
+              ${isCharacterFullyUnlocked(char) ? "unlock-complete" : ""}
+            "
+            onclick="unlockAllTalents('${escapeAttr(char["ID"])}')"
+            ${isCharacterFullyUnlocked(char) ? "disabled" : ""}
+          >
+            全開放
+          </button>
 
           </div>
           <div class="meta">
@@ -871,6 +880,43 @@ function setTalentLevel(key, level) {
   saveUnlockedTalents(data);
 
   renderList();
+}
+
+  function isCharacterFullyUnlocked(char) {
+
+  const unlocked = loadUnlockedTalents();
+
+  const allTalents = [
+    ...(char["本能"] || []),
+    ...(char["超本能"] || [])
+  ];
+
+  return allTalents.every((talent, index) => {
+
+    const title =
+      index < (char["本能"] || []).length
+        ? "本能"
+        : "超本能";
+
+    const talentIndex =
+      title === "本能"
+        ? index
+        : index - (char["本能"] || []).length;
+
+    const key = makeTalentKey(char, title, talentIndex);
+
+    const savedLevel = Number(unlocked[key] || 0);
+
+    const maxLevel = getTalentMaxLevel(char, talent);
+
+    // レベルあり
+    if (maxLevel > 0) {
+      return savedLevel >= maxLevel;
+    }
+
+    // レベルなし
+    return savedLevel > 0;
+  });
 }
 </script>
 
