@@ -715,30 +715,31 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
 
     if (maxLevel > 0) {
   controlHtml = `
-    <select
-      class="talent-level"
-      onchange="setTalentLevel('${escapeAttr(key)}', this.value)"
-    >
-      ${makeLevelOptions(maxLevel, savedLevel)}
-    </select>
+  <select
+    class="talent-level"
+    onchange="setTalentLevel('${escapeAttr(key)}', this.value, this)"
+  >
+    ${makeLevelOptions(maxLevel, savedLevel)}
+  </select>
 
-    <input
-      type="checkbox"
-      class="talent-check"
-      ${savedLevel === maxLevel ? "checked" : ""}
-      onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? ${maxLevel} : 0)"
-      title="MAX"
-    >
-  `;
+  <input
+    type="checkbox"
+    class="talent-check"
+    ${savedLevel === maxLevel ? "checked" : ""}
+    onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? ${maxLevel} : 0, this)"
+    title="MAX"
+    data-max-level="${maxLevel}"
+  >
+`;
 } else {
       controlHtml = `
-        <input
-          type="checkbox"
-          class="talent-check"
-          ${savedLevel > 0 ? "checked" : ""}
-          onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? 1 : 0)"
-        >
-      `;
+  <input
+    type="checkbox"
+    class="talent-check"
+    ${savedLevel > 0 ? "checked" : ""}
+    onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? 1 : 0, this)"
+  >
+`;
     }
 
     html += `
@@ -831,7 +832,7 @@ function makeTalentKey(char, title, index) {
   return `${char["ID"]}_${char["キャラ名"]}_${title}_${index}`;
 }
 
-function setTalentLevel(key, level) {
+function setTalentLevel(key, level, element = null) {
   const data = loadUnlockedTalents();
 
   level = Number(level);
@@ -844,10 +845,25 @@ function setTalentLevel(key, level) {
 
   saveUnlockedTalents(data);
 
+  if (element) {
+    const box = element.closest(".talent");
+    const select = box?.querySelector(".talent-level");
+    const checkbox = box?.querySelector(".talent-check");
+
+    if (select) {
+      select.value = String(level);
+    }
+
+    if (checkbox) {
+      const maxLevel = Number(checkbox.dataset.maxLevel || 1);
+      checkbox.checked = level >= maxLevel;
+    }
+  }
+
   updateNpSummary(filteredCharacters);
   updateUnlockAllButtons();
 }
-
+  
   function unlockAllTalents(characterId) {
 
   const data = loadUnlockedTalents();
