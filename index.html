@@ -197,6 +197,20 @@ select {
   border: 3px solid #ff3b30;
   box-sizing: border-box;
 }
+
+  .np-summary {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.np-summary strong {
+  font-size: 16px;
+}
 </style>
 </head>
 
@@ -212,6 +226,8 @@ select {
     <option value="">全レアリティ</option>
   </select>
 </div>
+
+<div id="npSummary" class="np-summary"></div>
 
 <div class="count" id="countText"></div>
 
@@ -302,6 +318,8 @@ const rarity = document.getElementById("rarityFilter").value;
   return true;
 });
 
+  updateNpSummary(filtered);
+
   document.getElementById("countText").textContent =
     `${filtered.length}件表示`;
 
@@ -341,6 +359,56 @@ const rarity = document.getElementById("rarityFilter").value;
 
     list.appendChild(card);
   });
+}
+
+  function sumNpText(npText) {
+  return String(npText ?? "")
+    .split(",")
+    .map(v => Number(v.trim()))
+    .filter(v => !isNaN(v))
+    .reduce((sum, v) => sum + v, 0);
+}
+
+function isResistanceTalent(name) {
+  const text = normalizeText(name);
+
+  // ○○耐性を除外
+  // 例：赤い敵耐性、浮いてる敵耐性、エイリアン耐性 など
+  return text.includes("耐性");
+}
+
+function updateNpSummary(targetCharacters) {
+  const rarity = document.getElementById("rarityFilter").value;
+  const summary = document.getElementById("npSummary");
+
+  let totalNp = 0;
+  let totalNpWithoutResistance = 0;
+
+  targetCharacters.forEach(char => {
+    const talents = [
+      ...(char["本能"] || []),
+      ...(char["超本能"] || [])
+    ];
+
+    talents.forEach(t => {
+      const np = sumNpText(t["消費NP"]);
+      const name = t["能力名"];
+
+      totalNp += np;
+
+      if (!isResistanceTalent(name)) {
+        totalNpWithoutResistance += np;
+      }
+    });
+  });
+
+  const rarityText = rarity ? rarity : "全レアリティ";
+
+  summary.innerHTML = `
+    <strong>${escapeHtml(rarityText)}</strong><br>
+    全ての本能NP合計：${totalNp.toLocaleString()} NP<br>
+    ○○耐性以外の本能NP合計：${totalNpWithoutResistance.toLocaleString()} NP
+  `;
 }
 
 function makeTalentHtml(title, talents, isSuper = false, talentSearch = "") {
