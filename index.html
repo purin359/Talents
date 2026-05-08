@@ -377,6 +377,20 @@ select {
 .super.talent-max {
   background: #cfeeff !important;
 }
+
+  #shortNameButton {
+  font-size: 16px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #666;
+  color: white;
+  cursor: pointer;
+}
+
+#shortNameButton.short-on {
+  background: #2196F3;
+}
 </style>
 </head>
 
@@ -391,6 +405,10 @@ select {
   <select id="rarityFilter">
     <option value="">全レアリティ</option>
   </select>
+
+  <button id="shortNameButton" onclick="toggleShortTalentName()">
+    略称OFF
+  </button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -402,6 +420,7 @@ select {
 <script>
 let characters = [];
 let filteredCharacters = [];
+let useShortTalentName = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -888,7 +907,7 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
         data-index="${index}"
       >
         <div class="talent-name">
-          ${escapeHtml(t["能力名"])}
+          ${escapeHtml(getDisplayTalentName(t["能力名"]))}
         </div>
 
         <div class="talent-bottom">
@@ -932,6 +951,58 @@ function makeLevelOptions(maxLevel, savedLevel) {
   }
 
   return html;
+}
+
+  function getDisplayTalentName(name) {
+  if (!useShortTalentName) {
+    return name;
+  }
+
+  let text = String(name ?? "");
+
+  const replacements = [
+    ["動きを止める", "停止"],
+    ["動きを遅くする", "鈍足"],
+    ["攻撃力ダウン", "低下"],
+    ["古代の呪い", "呪い"],
+    ["攻撃力アップ", "攻撃力上昇"],
+    ["基本攻撃力アップ", "基礎攻撃"],
+    ["基本体力アップ", "基礎体力"],
+    ["バリアブレイカー", "バリブレ"],
+    ["シールドブレイカー", "シルブレ"],
+    ["生産コストダウン", "コストダウン"],
+    ["生産スピードアップ", "再生産短縮"],
+    ["攻撃間隔短縮", "頻度短縮"],
+    ["属性を持たない敵", "属性 無属性"],
+
+    ["毒撃ダメージ", "毒撃"],
+    ["波動ダメージ", "波動"],
+    ["烈波ダメージ", "烈波"],
+
+    ["波動攻撃", "波動"],
+    ["烈波攻撃", "烈波"],
+    ["爆波攻撃", "爆波"]
+  ];
+
+  replacements.forEach(([from, to]) => {
+    text = text.replaceAll(from, to);
+  });
+
+  return text;
+}
+
+function toggleShortTalentName() {
+  useShortTalentName = !useShortTalentName;
+
+  const button = document.getElementById("shortNameButton");
+
+  button.textContent = useShortTalentName
+    ? "略称ON"
+    : "略称OFF";
+
+  button.classList.toggle("short-on", useShortTalentName);
+
+  renderList();
 }
   
   function normalizeText(text) {
