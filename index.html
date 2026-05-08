@@ -1167,10 +1167,23 @@ function toggleShortTalentName() {
 }
   
   function normalizeText(text) {
+
   return String(text ?? "")
+
+    // 全角英数字・半角カナ統一
     .normalize("NFKC")
+
+    // カタカナ → ひらがな
+    .replace(/[\u30A1-\u30F6]/g, ch =>
+      String.fromCharCode(ch.charCodeAt(0) - 0x60)
+    )
+
     .toLowerCase()
+
+    // 空白削除
     .replace(/\s+/g, "")
+
+    // ハイフン系統一
     .replace(/[‐-‒–—―ー]/g, "-");
 }
 
