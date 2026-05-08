@@ -840,12 +840,17 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
 
   talents.forEach((t, index) => {
     const talentName = normalizeText(t["能力名"]);
+    const shortTalentName = normalizeText(
+      getShortTalentName(t["能力名"])
+    );
+
     const npText = normalizeText(t["消費NP"]);
 
     const isHit =
       talentSearch &&
       (
         talentName.includes(talentSearch) ||
+        shortTalentName.includes(talentSearch) ||
         npText.includes(talentSearch)
       );
 
