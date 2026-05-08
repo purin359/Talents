@@ -443,6 +443,7 @@ const rarity = document.getElementById("rarityFilter").value;
             class="unlock-all-button
               ${isCharacterFullyUnlocked(char) ? "unlock-complete" : ""}
             "
+            data-character-id="${escapeAttr(char["ID"])}"
             onclick="unlockAllTalents('${escapeAttr(char["ID"])}')"
             ${isCharacterFullyUnlocked(char) ? "disabled" : ""}
           >
@@ -844,6 +845,7 @@ function setTalentLevel(key, level) {
   saveUnlockedTalents(data);
 
   updateNpSummary(filteredCharacters);
+  updateUnlockAllButtons();
 }
 
   function unlockAllTalents(characterId) {
@@ -918,6 +920,20 @@ function setTalentLevel(key, level) {
 
     // レベルなし
     return savedLevel > 0;
+  });
+}
+
+  function updateUnlockAllButtons() {
+  document.querySelectorAll(".unlock-all-button").forEach(button => {
+    const characterId = button.dataset.characterId;
+    const char = characters.find(c => String(c["ID"]) === String(characterId));
+
+    if (!char) return;
+
+    const fullyUnlocked = isCharacterFullyUnlocked(char);
+
+    button.classList.toggle("unlock-complete", fullyUnlocked);
+    button.disabled = fullyUnlocked;
   });
 }
 </script>
