@@ -406,9 +406,13 @@ select {
     <option value="">全レアリティ</option>
   </select>
 
-  <button id="shortNameButton" onclick="toggleShortTalentName()">
-    略称OFF
-  </button>
+  <button
+  id="shortNameButton"
+  class="short-on"
+  onclick="toggleShortTalentName()"
+>
+  略称ON
+</button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -420,7 +424,7 @@ select {
 <script>
 let characters = [];
 let filteredCharacters = [];
-let useShortTalentName = false;
+let useShortTalentName = true;
 
 fetch("talents.json")
   .then(res => res.json())
