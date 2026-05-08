@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>にゃんこ大戦争 キャラ別本能一覧</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #f7f7f7;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+input, select {
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  gap: 14px;
+}
+
+.char-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.meta {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-weight: bold;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.talent {
+  padding: 6px 8px;
+  background: #f1f1f1;
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+
+.super {
+  background: #fff0d6;
+}
+
+.empty {
+  color: #999;
+}
+
+.count {
+  margin-bottom: 10px;
+  color: #555;
+}
+</style>
+</head>
+
+<body>
+
+<h1>にゃんこ大戦争 キャラ別本能一覧</h1>
+
+<div class="controls">
+  <input type="text" id="searchInput" placeholder="キャラ名・能力名で検索">
+
+  <select id="rarityFilter">
+    <option value="">全レアリティ</option>
+  </select>
+</div>
+
+<div class="count" id="countText"></div>
+
+<div id="list"></div>
+
+<script>
+let characters = [];
+
+fetch("talents.json")
+  .then(res => res.json())
+  .then(data => {
+    characters = data;
+    setupRarityFilter();
+    renderList();
+  })
+  .catch(err => {
+    document.getElementById("list").innerHTML =
+      "<p>talents.json を読み込めませんでした。</p>";
+    console.error(err);
+  });
+
+document.getElementById("searchInput").addEventListener("input", renderList);
+document.getElementById("rarityFilter").addEventListener("change", renderList);
+
+function setupRarityFilter() {
+  const select = document.getElementById("rarityFilter");
+
+  const rarities = [...new Set(
+    characters
+      .map(c => c["レアリティ"])
+      .filter(r => r !== "")
+  )];
+
+  rarities.forEach(rarity => {
+    const option = document.createElement("option");
+    option.value = rarity;
+    option.textContent = rarity;
+    select.appendChild(option);
+  });
+}
+
+function renderList() {
+  const list = document.getElementById("list");
+  const search = document.getElementById("searchInput").value.trim();
+  const rarity = document.getElementById("rarityFilter").value;
+
+  list.innerHTML = "";
+
+  const filtered = characters.filter(char => {
+    if (rarity && char["レアリティ"] !== rarity) {
+      return false;
+    }
+
+    if (!search) {
+      return true;
+    }
+
+    const text = [
+      char["ID"],
+      char["キャラ名"],
+      char["レアリティ"],
+      ...(char["本能"] || []).map(t => t["能力名"]),
+      ...(char["本能"] || []).map(t => t["消費NP"]),
+      ...(char["超本能"] || []).map(t => t["能力名"]),
+      ...(char["超本能"] || []).map(t => t["消費NP"])
+    ].join(" ");
+
+    return text.includes(search);
+  });
+
+  document.getElementById("countText").textContent =
+    `${filtered.length}件表示`;
+
+  if (filtered.length === 0) {
+    list.innerHTML = "<p class='empty'>該当するキャラがありません。</p>";
+    return;
+  }
+
+  filtered.forEach(char => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.className = "char-img";
+    img.src = char["画像名"];
+    img.alt = char["キャラ名"];
+    img.onerror = () => {
+      img.src = "image/noimage.png";
+    };
+
+    const info = document.createElement("div");
+    info.className = "info";
+
+    info.innerHTML = `
+      <div class="name">${escapeHtml(char["キャラ名"])}</div>
+      <div class="meta">ID: ${escapeHtml(char["ID"])} / ${escapeHtml(char["レアリティ"])}</div>
+      ${makeTalentHtml("本能", char["本能"])}
+      ${char["超本能"] ? makeTalentHtml("超本能", char["超本能"], true) : ""}
+    `;
+
+    card.appendChild(img);
+    card.appendChild(info);
+    list.appendChild(card);
+  });
+}
+
+function makeTalentHtml(title, talents, isSuper = false) {
+  if (!talents || talents.length === 0) {
+    return "";
+  }
+
+  let html = `<div class="section-title">${title}</div>`;
+
+  talents.forEach(t => {
+    html += `
+      <div class="talent ${isSuper ? "super" : ""}">
+        <strong>${escapeHtml(t["能力名"])}</strong><br>
+        消費NP：${escapeHtml(t["消費NP"])}
+      </div>
+    `;
+  });
+
+  return html;
+}
+
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+</script>
+
+</body>
+</html>
