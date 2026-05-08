@@ -212,19 +212,20 @@ select {
   font-size: 16px;
 }
 
-  .talent {
-  position: relative;
-}
-
-.talent-check {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-
+  .talent-check {
   width: 18px;
   height: 18px;
-
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+.talent-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  margin-top: 5px;
 }
 </style>
 </head>
@@ -502,21 +503,27 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
 
     html += `
       <div class="talent ${isSuper ? "super" : ""} ${isHit ? "hit-talent" : ""}">
-        <input
-          type="checkbox"
-          class="talent-check"
-          ${checked}
-          onchange="toggleTalentUnlocked('${escapeAttr(key)}', this.checked)"
-        >
 
-        <div class="talent-name">
-          ${escapeHtml(t["能力名"])}
-        </div>
+  <div class="talent-name">
+    ${escapeHtml(t["能力名"])}
+  </div>
 
-        <div class="talent-np">
-          NP:${escapeHtml(t["消費NP"])}
-        </div>
-      </div>
+  <div class="talent-bottom">
+
+    <div class="talent-np">
+      NP:${escapeHtml(t["消費NP"])}
+    </div>
+
+    <input
+      type="checkbox"
+      class="talent-check"
+      ${checked}
+      onchange="toggleTalentUnlocked('${escapeAttr(key)}', this.checked)"
+    >
+
+  </div>
+
+</div>
     `;
   });
 
