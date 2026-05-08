@@ -767,12 +767,19 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
 }
 
 function makeLevelOptions(maxLevel, savedLevel) {
+
   let html = `<option value="0">未</option>`;
 
   for (let i = 1; i <= maxLevel; i++) {
+
+    const label =
+      i === maxLevel
+        ? "Lv.MAX"
+        : `Lv${i}`;
+
     html += `
       <option value="${i}" ${i === savedLevel ? "selected" : ""}>
-        Lv${i}
+        ${label}
       </option>
     `;
   }
