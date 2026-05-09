@@ -429,6 +429,12 @@ select {
 .star-button.star-on {
   color: #f9a825;
 }
+
+  .remaining-meta {
+  margin-top: 2px;
+  color: #777;
+  font-size: 14px;
+}
 </style>
 </head>
 
@@ -672,6 +678,31 @@ const rarity = document.getElementById("rarityFilter").value;
 
           })()}
           </div>
+          <div class="meta remaining-meta">
+            ${(() => {
+              const remain = getCharacterRemainingNp(char);
+
+              // 全開放、または一つも開けてない場合は表示しない
+              if (remain.remainNp <= 0 || remain.remainNp === remain.totalNp) {
+                return "";
+              }
+
+              if (remain.remainNp === remain.remainNonResistanceNp) {
+                return `
+                  未開放：
+                  ${remain.remainNp.toLocaleString()} NP
+                `;
+              }
+
+              return `
+                未開放：
+                ${remain.remainNp.toLocaleString()} NP
+                /
+                耐性なし：
+                ${remain.remainNonResistanceNp.toLocaleString()} NP
+              `;
+            })()}
+          </div>
         </div>
       </div>
 
@@ -783,6 +814,41 @@ function getUsedNpByLevel(char, talent, level) {
     return sum + sumNpText(t["消費NP"]);
 
   }, 0);
+}
+
+  function getCharacterRemainingNp(char) {
+  const unlocked = loadUnlockedTalents();
+
+  let totalNp = 0;
+  let remainNp = 0;
+  let remainNonResistanceNp = 0;
+
+  ["本能", "超本能"].forEach(title => {
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+      const key = makeTalentKey(char, title, index);
+
+      const totalTalentNp = getTalentTotalNp(talent);
+      const savedLevel = Number(unlocked[key] || 0);
+      const usedNp = getUsedNpByLevel(char, talent, savedLevel);
+
+      const remaining = totalTalentNp - usedNp;
+
+      totalNp += totalTalentNp;
+      remainNp += remaining;
+
+      if (!isResistanceTalent(talent["能力名"])) {
+        remainNonResistanceNp += remaining;
+      }
+    });
+  });
+
+  return {
+    totalNp,
+    remainNp,
+    remainNonResistanceNp
+  };
 }
 
   function getUnlockedNpTotal(targetCharacters) {
