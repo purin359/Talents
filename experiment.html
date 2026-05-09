@@ -435,12 +435,41 @@ select {
   color: #777;
   font-size: 14px;
 }
+
+  .account-area {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.account-area button {
+  font-size: 14px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: #555;
+  color: white;
+  cursor: pointer;
+}
 </style>
 </head>
 
 <body>
 
 <h1>本能一覧　Ver.15.3.0対応</h1>
+
+  <div class="account-area">
+  <select id="accountSelect" onchange="changeAccount()"></select>
+
+  <button onclick="addAccount()">
+    アカウント追加
+  </button>
+
+  <button onclick="renameAccount()">
+    名前変更
+  </button>
+</div>
 
 <div class="controls">
   <input type="text" id="charSearchInput" placeholder="キャラ名で検索">
@@ -473,6 +502,8 @@ let characters = [];
 let filteredCharacters = [];
 let useShortTalentName = true;
 let starFilterOnly = false;
+
+initAccounts();
 
 fetch("talents.json")
   .then(res => res.json())
@@ -1301,14 +1332,149 @@ function escapeHtml(text) {
 }
 
   // 保存
-  const TALENT_SAVE_KEY = "nyanko_talent_unlocked";
+  const ACCOUNT_LIST_KEY = "nyanko_talent_accounts";
+  const CURRENT_ACCOUNT_KEY = "nyanko_talent_current_account";
 
-function loadUnlockedTalents() {
+  const OLD_TALENT_SAVE_KEY = "nyanko_talent_unlocked";
+  const OLD_STAR_SAVE_KEY = "nyanko_talent_star_candidates";
+
+  function getCurrentAccountId() {
+    return localStorage.getItem(CURRENT_ACCOUNT_KEY) || "account_1";
+  }
+
+  function getTalentSaveKey() {
+    return `nyanko_talent_unlocked_${getCurrentAccountId()}`;
+  }
+
+  function getStarSaveKey() {
+    return `nyanko_talent_star_candidates_${getCurrentAccountId()}`;
+  }
+
+  function loadAccounts() {
   try {
-    return JSON.parse(localStorage.getItem(TALENT_SAVE_KEY)) || {};
+    return JSON.parse(localStorage.getItem(ACCOUNT_LIST_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveAccounts(accounts) {
+  localStorage.setItem(ACCOUNT_LIST_KEY, JSON.stringify(accounts));
+}
+
+function initAccounts() {
+  let accounts = loadAccounts();
+
+  if (accounts.length === 0) {
+    accounts = [
+      { id: "account_1", name: "アカウント1" },
+      { id: "account_2", name: "アカウント2" }
+    ];
+
+    saveAccounts(accounts);
+    localStorage.setItem(CURRENT_ACCOUNT_KEY, "account_1");
+  }
+
+  // 旧保存データをアカウント1へ移行
+  const oldTalentData = localStorage.getItem(OLD_TALENT_SAVE_KEY);
+  const account1TalentKey = "nyanko_talent_unlocked_account_1";
+
+  if (oldTalentData && !localStorage.getItem(account1TalentKey)) {
+    localStorage.setItem(account1TalentKey, oldTalentData);
+  }
+
+  const oldStarData = localStorage.getItem(OLD_STAR_SAVE_KEY);
+  const account1StarKey = "nyanko_talent_star_candidates_account_1";
+
+  if (oldStarData && !localStorage.getItem(account1StarKey)) {
+    localStorage.setItem(account1StarKey, oldStarData);
+  }
+
+  renderAccountSelect();
+}
+
+function renderAccountSelect() {
+  const select = document.getElementById("accountSelect");
+  if (!select) return;
+
+  const accounts = loadAccounts();
+  const currentId = getCurrentAccountId();
+
+  select.innerHTML = "";
+
+  accounts.forEach(account => {
+    const option = document.createElement("option");
+    option.value = account.id;
+    option.textContent = account.name;
+
+    if (account.id === currentId) {
+      option.selected = true;
+    }
+
+    select.appendChild(option);
+  });
+}
+
+function changeAccount() {
+  const select = document.getElementById("accountSelect");
+
+  localStorage.setItem(CURRENT_ACCOUNT_KEY, select.value);
+
+  renderList();
+  updateNpSummary(getRarityFilteredCharacters());
+}
+
+function addAccount() {
+  const accounts = loadAccounts();
+
+  const nextNumber = accounts.length + 1;
+  const id = `account_${Date.now()}`;
+  const defaultName = `アカウント${nextNumber}`;
+
+  const name = prompt("追加するアカウント名を入力してください", defaultName);
+
+  if (!name) return;
+
+  accounts.push({
+    id,
+    name
+  });
+
+  saveAccounts(accounts);
+  localStorage.setItem(CURRENT_ACCOUNT_KEY, id);
+
+  renderAccountSelect();
+  renderList();
+  updateNpSummary(getRarityFilteredCharacters());
+}
+
+function renameAccount() {
+  const accounts = loadAccounts();
+  const currentId = getCurrentAccountId();
+
+  const account = accounts.find(a => a.id === currentId);
+  if (!account) return;
+
+  const name = prompt("アカウント名を変更してください", account.name);
+
+  if (!name) return;
+
+  account.name = name;
+
+  saveAccounts(accounts);
+  renderAccountSelect();
+}
+
+  function loadUnlockedTalents() {
+  try {
+    return JSON.parse(localStorage.getItem(getTalentSaveKey())) || {};
   } catch {
     return {};
   }
+}
+
+function saveUnlockedTalents(data) {
+  localStorage.setItem(getTalentSaveKey(), JSON.stringify(data));
 }
 
 function saveUnlockedTalents(data) {
@@ -1386,14 +1552,16 @@ function setTalentLevel(key, level, element = null) {
   updateUnlockAllButtons();
 }
 
-  const STAR_SAVE_KEY = "nyanko_talent_star_candidates";
-
 function loadStarCharacters() {
   try {
-    return JSON.parse(localStorage.getItem(STAR_SAVE_KEY)) || {};
+    return JSON.parse(localStorage.getItem(getStarSaveKey())) || {};
   } catch {
     return {};
   }
+}
+
+function saveStarCharacters(data) {
+  localStorage.setItem(getStarSaveKey(), JSON.stringify(data));
 }
 
 function saveStarCharacters(data) {
