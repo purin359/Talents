@@ -1477,10 +1477,6 @@ function saveUnlockedTalents(data) {
   localStorage.setItem(getTalentSaveKey(), JSON.stringify(data));
 }
 
-function saveUnlockedTalents(data) {
-  localStorage.setItem(TALENT_SAVE_KEY, JSON.stringify(data));
-}
-
 function makeTalentKey(char, title, index) {
   return `${char["ID"]}_${char["キャラ名"]}_${title}_${index}`;
 }
@@ -1562,10 +1558,6 @@ function loadStarCharacters() {
 
 function saveStarCharacters(data) {
   localStorage.setItem(getStarSaveKey(), JSON.stringify(data));
-}
-
-function saveStarCharacters(data) {
-  localStorage.setItem(STAR_SAVE_KEY, JSON.stringify(data));
 }
 
 function makeCharacterStarKey(char) {
