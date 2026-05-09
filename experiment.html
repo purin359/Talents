@@ -1,1 +1,1781 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>本能一覧(実験用)</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #f7f7f7;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+input,
+select {
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.count {
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+
+  padding: 12px 16px;
+  margin-bottom: 12px;
+
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+.char-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.char-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.name {
+  font-size: 19px;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.meta {
+  color: #666;
+  font-size: 15px;
+}
+
+.talent-area {
+  margin-top: 6px;
+}
+
+.section-title {
+  font-weight: bold;
+  margin: 5px 0;
+  font-size: 15px;
+}
+
+.talent-row {
+  display: flex;
+  gap: 9px;
+
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding: 2px 0 8px;
+}
+
+.talent {
+  width: 132px;
+  height: 64px;
+
+  flex: 0 0 auto;
+
+  background: #f1f1f1;
+  border-radius: 9px;
+
+  padding: 7px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.super {
+  background: #fff0d6;
+}
+
+.talent-name {
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1.15;
+}
+
+.talent-np {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+}
+  
+.empty {
+  color: #999;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  .char-img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .name {
+  font-size: 19px;
+  font-weight: bold;
+  margin-bottom: 3px;
+
+  flex: 0 1 auto;
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+  .talent {
+    width: 135px;
+    height: 68px;
+  }
+
+  .talent-name {
+    font-size: 13px;
+  }
+
+  .talent-np {
+    font-size: 12px;
+  }
+}
+
+  #topButton {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+
+  width: 52px;
+  height: 52px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #4CAF50;
+  color: white;
+
+  font-size: 24px;
+  font-weight: bold;
+
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+
+  z-index: 9999;
+}
+
+#topButton:active {
+  transform: scale(0.95);
+}
+
+  .hit-talent {
+  border: 3px solid #ff3b30;
+  box-sizing: border-box;
+}
+
+  .np-summary {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+
+  box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+
+  display: flex;
+  gap: 20px;
+}
+
+.np-summary-column {
+  flex: 1;
+}
+
+.np-summary-column + .np-summary-column {
+  border-left: 1px solid #ddd;
+  padding-left: 20px;
+}
+
+.np-summary strong {
+  font-size: 16px;
+}
+
+.np-summary-line {
+  margin-top: 4px;
+}
+
+  .talent-check {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.talent-bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+
+  margin-top: 1px;
+}
+
+.talent-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+
+  margin-top: 1px;
+}
+
+.talent-level {
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 5px;
+  border: 1px solid #aaa;
+  background: white;
+
+  width: 72px;
+}
+
+.talent-check {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+  .name-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+
+  width: fit-content;
+  max-width: 100%;
+}
+
+.unlock-all-button {
+  border: none;
+  border-radius: 7px;
+
+  background: #4CAF50;
+  color: white;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  padding: 5px 10px;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+
+  margin-left: 0;
+}
+  
+.unlock-all-button:active {
+  transform: scale(0.96);
+}
+
+  .unlock-complete {
+  background: #999 !important;
+  cursor: default;
+  opacity: 0.8;
+}
+
+  .unlock-buttons {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.unlock-nonresist-button {
+  border: none;
+  border-radius: 7px;
+
+  background: #ff9800;
+  color: white;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  padding: 5px 10px;
+
+  cursor: pointer;
+}
+
+.unlock-nonresist-button:active {
+  transform: scale(0.96);
+}
+
+  .reset-talents-button {
+  border: none;
+  border-radius: 7px;
+
+  background: #e53935;
+  color: white;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  padding: 5px 10px;
+
+  cursor: pointer;
+}
+
+.reset-talents-button:active {
+  transform: scale(0.96);
+}
+
+  .talent-partial {
+  background: #dff5d8 !important;
+}
+
+.talent-max {
+  background: #d9f0ff !important;
+}
+
+/* 超本能用 */
+.super.talent-partial {
+  background: #d8f5c8 !important;
+}
+
+.super.talent-max {
+  background: #cfeeff !important;
+}
+
+  #shortNameButton {
+  font-size: 16px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #666;
+  color: white;
+  cursor: pointer;
+}
+
+#shortNameButton.short-on {
+  background: #2196F3;
+}
+
+  #starFilterButton {
+  font-size: 16px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #666;
+  color: white;
+  cursor: pointer;
+}
+
+#starFilterButton.star-filter-on {
+  background: #f9a825;
+}
+
+.card {
+  position: relative;
+}
+
+.star-button {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+
+  border: none;
+  background: transparent;
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+  color: #bbb;
+
+  z-index: 2;
+}
+
+.star-button.star-on {
+  color: #f9a825;
+}
+
+  .remaining-meta {
+  margin-top: 2px;
+  color: #777;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>本能一覧　Ver.15.3.0対応</h1>
+
+<div class="controls">
+  <input type="text" id="charSearchInput" placeholder="キャラ名で検索">
+  <input type="text" id="talentSearchInput" placeholder="本能・超本能で検索"> 
+  <button id="starFilterButton" onclick="toggleStarFilter()">
+    ☆表示
+  </button>
+
+  <select id="rarityFilter">
+    <option value="">全レアリティ</option>
+  </select>
+
+  <button
+  id="shortNameButton"
+  class="short-on"
+  onclick="toggleShortTalentName()"
+>
+  略称ON
+</button>
+</div>
+
+<div id="npSummary" class="np-summary"></div>
+
+<div class="count" id="countText"></div>
+
+<div id="list"></div>
+
+<script>
+let characters = [];
+let filteredCharacters = [];
+let useShortTalentName = true;
+let starFilterOnly = false;
+
+fetch("talents.json")
+  .then(res => res.json())
+  .then(data => {
+    characters = data;
+    setupRarityFilter();
+    renderList();
+  })
+  .catch(err => {
+    document.getElementById("list").innerHTML =
+      "<p class='empty'>talents.json を読み込めませんでした。</p>";
+    console.error(err);
+  });
+
+document.getElementById("charSearchInput").addEventListener("input", renderList);
+document.getElementById("talentSearchInput").addEventListener("input", renderList);
+document.getElementById("rarityFilter").addEventListener("change", renderList);
+
+function setupRarityFilter() {
+  const select = document.getElementById("rarityFilter");
+
+  const rarities = [...new Set(
+    characters
+      .map(c => c["レアリティ"])
+      .filter(r => r !== "")
+  )];
+
+  rarities.forEach(rarity => {
+    const option = document.createElement("option");
+    option.value = rarity;
+    option.textContent = rarity;
+    select.appendChild(option);
+  });
+}
+
+  function getRarityFilteredCharacters() {
+
+  const rarity =
+    document.getElementById("rarityFilter").value;
+
+  return characters.filter(char => {
+
+    if (rarity && char["レアリティ"] !== rarity) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function renderList() {
+  const list = document.getElementById("list");
+  const charSearch = normalizeText(
+  document.getElementById("charSearchInput").value
+);
+
+const talentSearch = normalizeText(
+  document.getElementById("talentSearchInput").value
+);
+
+const rarity = document.getElementById("rarityFilter").value;
+
+  list.innerHTML = "";
+
+  filteredCharacters = characters.filter(char => {
+
+  if (starFilterOnly && !isCharacterStarred(char)) {
+    return false;
+  }
+
+  if (rarity && char["レアリティ"] !== rarity) {
+    return false;
+  }
+
+  // キャラ検索対象
+  const charText = normalizeText([
+    char["ID"],
+    char["キャラ名"],
+    char["レアリティ"]
+  ].join(" "));
+
+  // 本能検索対象
+  const talentText = normalizeText([
+  ...(char["本能"] || []).map(t => t["能力名"]),
+  ...(char["本能"] || []).map(t => getShortTalentName(t["能力名"])),
+  ...(char["本能"] || []).map(t => t["消費NP"]),
+
+  ...(char["超本能"] || []).map(t => t["能力名"]),
+  ...(char["超本能"] || []).map(t => getShortTalentName(t["能力名"])),
+  ...(char["超本能"] || []).map(t => t["消費NP"])
+].join(" "));
+
+  // キャラ検索欄に入力がある場合
+  if (charSearch && !charText.includes(charSearch)) {
+    return false;
+  }
+
+  // 本能検索欄に入力がある場合
+  if (talentSearch && !talentText.includes(talentSearch)) {
+    return false;
+  }
+
+  return true;
+});
+
+  updateNpSummary(getRarityFilteredCharacters());
+
+  document.getElementById("countText").textContent =
+    `${filteredCharacters.length}件表示`;
+
+  if (filteredCharacters.length === 0) {
+    list.innerHTML = "<p class='empty'>該当するキャラがありません。</p>";
+    return;
+  }
+
+  filteredCharacters.forEach(char => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+    <button
+      class="star-button ${isCharacterStarred(char) ? "star-on" : ""}"
+      data-character-id="${escapeAttr(char["ID"])}"
+      onclick="toggleCharacterStar('${escapeAttr(char["ID"])}')"
+      title="候補にする"
+    >
+      ${isCharacterStarred(char) ? "★" : "☆"}
+    </button>
+      <div class="char-header">
+        <img
+          class="char-img"
+          src="${escapeHtml(char["画像名"])}"
+          alt="${escapeHtml(char["キャラ名"])}"
+          onerror="this.src='image/noimage.png'"
+        >
+
+        <div class="char-info">
+          <div class="name-row">
+
+            <div class="name">
+              ${escapeHtml(char["キャラ名"])}
+            </div>
+
+            <div class="unlock-buttons">
+
+            <button
+              class="unlock-all-button
+              ${isCharacterFullyUnlocked(char) ? "unlock-complete" : ""}
+            "
+            data-character-id="${escapeAttr(char["ID"])}"
+            onclick="unlockAllTalents('${escapeAttr(char["ID"])}')"
+            ${isCharacterFullyUnlocked(char) ? "disabled" : ""}
+          >
+            全開放
+          </button>
+
+          <button
+            class="unlock-nonresist-button
+              ${isCharacterNonResistanceUnlocked(char)
+                ? "unlock-complete"
+                : ""}
+            "
+            data-nonresist-character-id="${escapeAttr(char["ID"])}"
+            onclick="unlockNonResistanceTalents('${escapeAttr(char["ID"])}')"
+            ${isCharacterNonResistanceUnlocked(char)
+              ? "disabled"
+              : ""}
+            >
+            耐性以外
+          </button>
+
+          <button
+            class="reset-talents-button"
+            onclick="resetCharacterTalents('${escapeAttr(char["ID"])}')"
+          >
+            リセット
+          </button>
+
+        </div>
+
+          </div>
+          <div class="meta">
+            ${(() => {
+
+            const totalNp = getCharacterTotalNp(char);
+            const nonResistanceNp = getCharacterNonResistanceNp(char);
+
+            // 同じなら耐性なしを省略
+            if (totalNp === nonResistanceNp) {
+              return `
+                合計NP：
+                ${totalNp.toLocaleString()} NP
+              `;
+            }
+
+            return `
+              合計NP：
+              ${totalNp.toLocaleString()} NP
+              /
+              耐性なし：
+              ${nonResistanceNp.toLocaleString()} NP
+            `;
+
+          })()}
+          </div>
+          <div
+            class="meta remaining-meta"
+            data-remaining-character-id="${escapeAttr(char["ID"])}"
+          >
+            ${makeRemainingMetaHtml(char)}
+          </div>
+        </div>
+      </div>
+
+      <div class="talent-area">
+        ${makeTalentHtml("本能", char["本能"], false, talentSearch, char)}
+        ${char["超本能"] ? makeTalentHtml("超本能", char["超本能"], true, talentSearch, char) : ""}      
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+}
+
+  function sumNpText(npText) {
+  return String(npText ?? "")
+    .split(",")
+    .map(v => Number(v.trim()))
+    .filter(v => !isNaN(v))
+    .reduce((sum, v) => sum + v, 0);
+}
+
+  function parseNpArray(npText) {
+  return String(npText ?? "")
+    .split(",")
+    .map(v => Number(v.trim()))
+    .filter(v => !isNaN(v));
+}
+
+// レアリティ別・合計NP別のレベル消費NP表
+function getLevelNpList(rarity, totalNp) {
+  const table = {
+    "EX": {
+      125: [10,10,10,10,10,15,15,15,15,15],
+      165: [50,10,10,10,10,15,15,15,15,15],
+      175: [15,15,15,15,15,20,20,20,20,20],
+      215: [75,10,10,10,10,20,20,20,20,20],
+      235: [75,15,15,15,15,20,20,20,20,20]
+    },
+    "レア": {
+      25: [5,5,5,5,5],
+      75: [5,5,5,5,5,10,10,10,10,10],
+      95: [25,5,5,5,5,10,10,10,10,10]
+    },
+    "激レア": {
+      125: [10,10,10,10,10,15,15,15,15,15],
+      165: [50,10,10,10,10,15,15,15,15,15]
+    },
+    "超激レア": {
+      175: [15,15,15,15,15,20,20,20,20,20],
+      225: [20,20,20,20,20,25,25,25,25,25],
+      235: [75,15,15,15,15,20,20,20,20,20],
+      285: [100,15,15,15,15,25,25,25,25,25],
+      355: [150,20,20,20,20,25,25,25,25,25]
+    }
+  };
+
+  return table[rarity]?.[totalNp] || null;
+}
+
+function getTalentTotalNp(talent) {
+  return sumNpText(talent["消費NP"]);
+}
+
+function getTalentMaxLevel(char, talent) {
+  const totalNp = getTalentTotalNp(talent);
+  const levelList = getLevelNpList(char["レアリティ"], totalNp);
+
+  return levelList ? levelList.length : 0;
+}
+
+function getUsedNpByLevel(char, talent, level) {
+  const totalNp = getTalentTotalNp(talent);
+  const levelList = getLevelNpList(char["レアリティ"], totalNp);
+
+  // レベルなし本能
+  if (!levelList) {
+    return level > 0 ? totalNp : 0;
+  }
+
+  return levelList
+    .slice(0, level)
+    .reduce((sum, v) => sum + v, 0);
+}
+
+  function getCharacterTotalNp(char) {
+  const talents = [
+    ...(char["本能"] || []),
+    ...(char["超本能"] || [])
+  ];
+
+  return talents.reduce((sum, t) => {
+    return sum + sumNpText(t["消費NP"]);
+  }, 0);
+}
+
+  function getCharacterNonResistanceNp(char) {
+
+  const talents = [
+    ...(char["本能"] || []),
+    ...(char["超本能"] || [])
+  ];
+
+  return talents.reduce((sum, t) => {
+
+    if (isResistanceTalent(t["能力名"])) {
+      return sum;
+    }
+
+    return sum + sumNpText(t["消費NP"]);
+
+  }, 0);
+}
+
+  function getCharacterRemainingNp(char) {
+  const unlocked = loadUnlockedTalents();
+
+  let totalNp = 0;
+  let remainNp = 0;
+  let remainNonResistanceNp = 0;
+
+  ["本能", "超本能"].forEach(title => {
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+      const key = makeTalentKey(char, title, index);
+
+      const totalTalentNp = getTalentTotalNp(talent);
+      const savedLevel = Number(unlocked[key] || 0);
+      const usedNp = getUsedNpByLevel(char, talent, savedLevel);
+
+      const remaining = totalTalentNp - usedNp;
+
+      totalNp += totalTalentNp;
+      remainNp += remaining;
+
+      if (!isResistanceTalent(talent["能力名"])) {
+        remainNonResistanceNp += remaining;
+      }
+    });
+  });
+
+  return {
+    totalNp,
+    remainNp,
+    remainNonResistanceNp
+  };
+}
+
+  function getUnlockedNpTotal(targetCharacters) {
+  const unlocked = loadUnlockedTalents();
+
+  let total = 0;
+
+  targetCharacters.forEach(char => {
+    ["本能", "超本能"].forEach(title => {
+      const talents = char[title] || [];
+
+      talents.forEach((t, index) => {
+        const key = makeTalentKey(char, title, index);
+        const level = Number(unlocked[key] || 0);
+
+        total += getUsedNpByLevel(char, t, level);
+      });
+    });
+  });
+
+  return total;
+}
+
+  function getRemainingNpForStarredCharacters(targetCharacters) {
+
+  let totalNp = 0;
+  let nonResistanceNp = 0;
+
+  const unlocked = loadUnlockedTalents();
+
+  targetCharacters.forEach(char => {
+
+    // 星なしは除外
+    if (!isCharacterStarred(char)) {
+      return;
+    }
+
+    ["本能", "超本能"].forEach(title => {
+
+      const talents = char[title] || [];
+
+      talents.forEach((talent, index) => {
+
+        const key =
+          makeTalentKey(char, title, index);
+
+        const savedLevel =
+          Number(unlocked[key] || 0);
+
+        const totalTalentNp =
+          getTalentTotalNp(talent);
+
+        const maxLevel =
+          getTalentMaxLevel(char, talent);
+
+        const usedNp =
+          getUsedNpByLevel(char, talent, savedLevel);
+
+        // 残りNP
+        const remainNp =
+          totalTalentNp - usedNp;
+
+        // 既にMAXなら除外
+        if (remainNp <= 0) {
+          return;
+        }
+
+        totalNp += remainNp;
+
+        if (!isResistanceTalent(talent["能力名"])) {
+          nonResistanceNp += remainNp;
+        }
+
+      });
+
+    });
+
+  });
+
+  return {
+    totalNp,
+    nonResistanceNp
+  };
+}
+
+function isResistanceTalent(name) {
+  const text = normalizeText(name);
+
+  // ○○耐性を除外
+  // 例：赤い敵耐性、浮いてる敵耐性、エイリアン耐性 など
+  return text.includes("耐性");
+}
+
+function updateNpSummary(targetCharacters) {
+
+  const rarity =
+    document.getElementById("rarityFilter").value;
+
+  const summary =
+    document.getElementById("npSummary");
+
+  let totalNp = 0;
+  let totalNpWithoutResistance = 0;
+
+  targetCharacters.forEach(char => {
+
+    const talents = [
+      ...(char["本能"] || []),
+      ...(char["超本能"] || [])
+    ];
+
+    talents.forEach(t => {
+
+      const np =
+        sumNpText(t["消費NP"]);
+
+      totalNp += np;
+
+      if (!isResistanceTalent(t["能力名"])) {
+        totalNpWithoutResistance += np;
+      }
+
+    });
+
+  });
+
+  const unlockedNp =
+    getUnlockedNpTotal(targetCharacters);
+
+  const starredRemain =
+    getRemainingNpForStarredCharacters(targetCharacters);
+
+  const rarityText =
+    rarity ? rarity : "全レアリティ";
+
+  summary.innerHTML = `
+
+    <div class="np-summary-column">
+
+      <strong>${escapeHtml(rarityText)}</strong>
+
+      <div class="np-summary-line">
+        全ての本能NP合計：
+        ${totalNp.toLocaleString()} NP
+      </div>
+
+      <div class="np-summary-line">
+        耐性以外：
+        ${totalNpWithoutResistance.toLocaleString()} NP
+      </div>
+
+    </div>
+
+    <div class="np-summary-column">
+
+      <strong>開けたいキャラ(★)</strong>
+
+      <div class="np-summary-line">
+        全ての本能NP合計：
+        ${starredRemain.totalNp.toLocaleString()} NP
+      </div>
+
+      <div class="np-summary-line">
+        耐性以外：
+        ${starredRemain.nonResistanceNp.toLocaleString()} NP
+      </div>
+
+    </div>
+
+    <div class="np-summary-column">
+
+      <strong>
+        開放済み${rarity ? `（${escapeHtml(rarity)}）` : ""}
+      </strong>
+
+      <div class="np-summary-line">
+        開放済みNP合計：
+        ${unlockedNp.toLocaleString()} NP
+      </div>
+
+    </div>
+  `;
+}
+
+  function makeRemainingMetaHtml(char) {
+  const remain = getCharacterRemainingNp(char);
+
+  // 全開放、または一つも開けてない場合は表示しない
+  if (remain.remainNp <= 0 || remain.remainNp === remain.totalNp) {
+    return "";
+  }
+
+  if (
+  remain.remainNonResistanceNp <= 0 ||
+  remain.remainNp === remain.remainNonResistanceNp
+) {
+  return `
+    未開放：
+    ${remain.remainNp.toLocaleString()} NP
+  `;
+}
+
+  return `
+    未開放：
+    ${remain.remainNp.toLocaleString()} NP
+    /
+    耐性なし：
+    ${remain.remainNonResistanceNp.toLocaleString()} NP
+  `;
+}
+
+  function updateRemainingMeta(charId) {
+  const char = characters.find(c => String(c["ID"]) === String(charId));
+  if (!char) return;
+
+  const el = document.querySelector(
+    `.remaining-meta[data-remaining-character-id="${CSS.escape(String(charId))}"]`
+  );
+
+  if (el) {
+    el.innerHTML = makeRemainingMetaHtml(char);
+  }
+}
+
+function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char = null) {
+  if (!talents || talents.length === 0) {
+    return "";
+  }
+
+  const unlocked = loadUnlockedTalents();
+
+  let html = `
+    <div class="section-title">${title}</div>
+    <div class="talent-row">
+  `;
+
+  talents.forEach((t, index) => {
+    const talentName = normalizeText(t["能力名"]);
+    const shortTalentName = normalizeText(
+      getShortTalentName(t["能力名"])
+    );
+
+    const npText = normalizeText(t["消費NP"]);
+
+    const isHit =
+      talentSearch &&
+      (
+        talentName.includes(talentSearch) ||
+        shortTalentName.includes(talentSearch) ||
+        npText.includes(talentSearch)
+      );
+
+    const key = char ? makeTalentKey(char, title, index) : "";
+    const savedLevel = Number(unlocked[key] || 0);
+
+    const maxLevel = char ? getTalentMaxLevel(char, t) : 0;
+    const totalNp = getTalentTotalNp(t);
+    const usedNp = char ? getUsedNpByLevel(char, t, savedLevel) : 0;
+
+    let controlHtml = "";
+
+    if (maxLevel > 0) {
+  controlHtml = `
+  <select
+    class="talent-level"
+    onchange="setTalentLevel('${escapeAttr(key)}', this.value, this)"
+  >
+    ${makeLevelOptions(maxLevel, savedLevel)}
+  </select>
+
+  <input
+    type="checkbox"
+    class="talent-check"
+    ${savedLevel === maxLevel ? "checked" : ""}
+    onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? ${maxLevel} : 0, this)"
+    title="MAX"
+    data-max-level="${maxLevel}"
+  >
+`;
+} else {
+      controlHtml = `
+  <input
+    type="checkbox"
+    class="talent-check"
+    ${savedLevel > 0 ? "checked" : ""}
+    onchange="setTalentLevel('${escapeAttr(key)}', this.checked ? 1 : 0, this)"
+  >
+`;
+    }
+
+    html += `
+      <div
+  class="
+    talent
+    ${isSuper ? "super" : ""}
+    ${isHit ? "hit-talent" : ""}
+
+    ${
+      savedLevel > 0
+        ? (
+            maxLevel > 0
+              ? (
+                  savedLevel >= maxLevel
+                    ? "talent-max"
+                    : "talent-partial"
+                )
+              : "talent-max"
+          )
+        : ""
+    }
+  "
+        data-key="${escapeAttr(key)}"
+        data-char-id="${escapeAttr(char["ID"])}"
+        data-title="${escapeAttr(title)}"
+        data-index="${index}"
+      >
+        <div class="talent-name">
+          ${escapeHtml(getDisplayTalentName(t["能力名"]))}
+        </div>
+
+        <div class="talent-bottom">
+          <div class="talent-np">
+            ${
+              maxLevel > 0 && savedLevel > 0 && savedLevel < maxLevel
+                ? `${usedNp}/${totalNp}NP`
+                : `NP:${totalNp}`
+              }
+          </div>
+        </div>
+
+        <div class="talent-controls">
+          ${controlHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  return html;
+}
+
+function makeLevelOptions(maxLevel, savedLevel) {
+
+  let html = `<option value="0">未</option>`;
+
+  for (let i = 1; i <= maxLevel; i++) {
+
+    const label =
+      i === maxLevel
+        ? "Lv.MAX"
+        : `Lv${i}`;
+
+    html += `
+      <option value="${i}" ${i === savedLevel ? "selected" : ""}>
+        ${label}
+      </option>
+    `;
+  }
+
+  return html;
+}
+
+  function getShortTalentName(name) {
+  let text = String(name ?? "");
+
+  const replacements = [
+    ["基本攻撃力アップ", "基礎攻撃"],
+    ["基本体力アップ", "基礎体力"],
+    ["移動速度アップ", "移速アップ"],
+
+    ["動きを止める", "停止"],
+    ["動きを遅くする", "鈍足"],
+    ["攻撃力ダウン", "低下"],
+    ["古代の呪い", "呪い"],
+
+    ["攻撃力アップ", "攻撃力上昇"],
+
+    ["バリアブレイカー", "バリブレ"],
+    ["シールドブレイカー", "シルブレ"],
+
+    ["生産コストダウン", "コストダウン"],
+    ["生産スピードアップ", "再生産短縮"],
+    ["攻撃間隔短縮", "頻度短縮"],
+    ["撃破時お金アップ", "お金2倍"],
+
+    ["属性を持たない敵", "属性 無属性"],
+
+    ["毒撃ダメージ", "毒撃"],
+    ["波動ダメージ", "波動"],
+    ["烈波ダメージ", "烈波"],
+
+    ["波動攻撃", "波動"],
+    ["烈波攻撃", "烈波"],
+    ["爆波攻撃", "爆波"]
+  ];
+
+  replacements.forEach(([from, to]) => {
+    text = text.replaceAll(from, to);
+  });
+
+  return text;
+}
+
+function getDisplayTalentName(name) {
+  return useShortTalentName
+    ? getShortTalentName(name)
+    : name;
+}
+  
+function toggleShortTalentName() {
+  useShortTalentName = !useShortTalentName;
+
+  const button = document.getElementById("shortNameButton");
+
+  button.textContent = useShortTalentName
+    ? "略称ON"
+    : "略称OFF";
+
+  button.classList.toggle("short-on", useShortTalentName);
+
+  renderList();
+}
+  
+  function normalizeText(text) {
+
+  return String(text ?? "")
+
+    // 全角英数字・半角カナ統一
+    .normalize("NFKC")
+
+    // カタカナ → ひらがな
+    .replace(/[\u30A1-\u30F6]/g, ch =>
+      String.fromCharCode(ch.charCodeAt(0) - 0x60)
+    )
+
+    .toLowerCase()
+
+    // 空白削除
+    .replace(/\s+/g, "")
+
+    // ハイフン系統一
+    .replace(/[‐-‒–—―ー]/g, "-");
+}
+
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+  function escapeAttr(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+  function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+  // 保存
+  const TALENT_SAVE_KEY = "nyanko_talent_unlocked";
+
+function loadUnlockedTalents() {
+  try {
+    return JSON.parse(localStorage.getItem(TALENT_SAVE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveUnlockedTalents(data) {
+  localStorage.setItem(TALENT_SAVE_KEY, JSON.stringify(data));
+}
+
+function makeTalentKey(char, title, index) {
+  return `${char["ID"]}_${char["キャラ名"]}_${title}_${index}`;
+}
+
+function setTalentLevel(key, level, element = null) {
+  const data = loadUnlockedTalents();
+
+  level = Number(level);
+
+  if (level > 0) {
+    data[key] = level;
+  } else {
+    delete data[key];
+  }
+
+  saveUnlockedTalents(data);
+
+  if (element) {
+    const box = element.closest(".talent");
+    const select = box?.querySelector(".talent-level");
+    const checkbox = box?.querySelector(".talent-check");
+
+    const maxLevel = checkbox
+      ? Number(checkbox.dataset.maxLevel || 0)
+      : 0;
+
+    if (select) {
+      select.value = String(level);
+    }
+
+    if (checkbox) {
+      checkbox.checked = maxLevel > 0
+        ? level >= maxLevel
+        : level > 0;
+    }
+
+    updateTalentBoxColor(box, level, maxLevel);
+
+    const npText = box?.querySelector(".talent-np");
+
+    if (npText) {
+      const charId = box.dataset.charId;
+      const title = box.dataset.title;
+      const index = Number(box.dataset.index);
+
+      const char = characters.find(c => String(c["ID"]) === String(charId));
+      const talent = char?.[title]?.[index];
+
+      if (char && talent) {
+        const totalNp = getTalentTotalNp(talent);
+        const trueMaxLevel = getTalentMaxLevel(char, talent);
+        const usedNp = getUsedNpByLevel(char, talent, level);
+
+        if (trueMaxLevel > 0 && level > 0 && level < trueMaxLevel) {
+          npText.textContent = `${usedNp}/${totalNp}NP`;
+        } else {
+          npText.textContent = `NP:${totalNp}`;
+        }
+      }
+    }
+  }
+
+  if (element) {
+  const box = element.closest(".talent");
+  updateRemainingMeta(box?.dataset.charId);
+}
+
+  updateNpSummary(getRarityFilteredCharacters());
+  updateUnlockAllButtons();
+}
+
+  const STAR_SAVE_KEY = "nyanko_talent_star_candidates";
+
+function loadStarCharacters() {
+  try {
+    return JSON.parse(localStorage.getItem(STAR_SAVE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStarCharacters(data) {
+  localStorage.setItem(STAR_SAVE_KEY, JSON.stringify(data));
+}
+
+function makeCharacterStarKey(char) {
+  return `${char["ID"]}_${char["キャラ名"]}`;
+}
+
+function isCharacterStarred(char) {
+  const data = loadStarCharacters();
+  return !!data[makeCharacterStarKey(char)];
+}
+
+function toggleCharacterStar(characterId) {
+  const char = characters.find(c => String(c["ID"]) === String(characterId));
+  if (!char) return;
+
+  const data = loadStarCharacters();
+  const key = makeCharacterStarKey(char);
+
+  if (data[key]) {
+    delete data[key];
+  } else {
+    data[key] = true;
+  }
+
+  saveStarCharacters(data);
+
+  const button = document.querySelector(
+    `.star-button[data-character-id="${CSS.escape(String(characterId))}"]`
+  );
+
+  if (button) {
+    const on = !!data[key];
+    button.classList.toggle("star-on", on);
+    button.textContent = on ? "★" : "☆";
+  }
+
+  updateNpSummary(getRarityFilteredCharacters());
+
+  if (starFilterOnly) {
+    renderList();
+  }
+}
+
+function toggleStarFilter() {
+  starFilterOnly = !starFilterOnly;
+
+  const button = document.getElementById("starFilterButton");
+
+  button.classList.toggle("star-filter-on", starFilterOnly);
+  button.textContent = starFilterOnly
+    ? "★表示解除"
+    : "☆表示";
+
+  renderList();
+}
+
+  function updateTalentBoxColor(box, level, maxLevel) {
+  if (!box) return;
+
+  box.classList.remove("talent-max", "talent-partial");
+
+  if (level <= 0) return;
+
+  if (maxLevel > 0) {
+    if (level >= maxLevel) {
+      box.classList.add("talent-max");
+    } else {
+      box.classList.add("talent-partial");
+    }
+  } else {
+    box.classList.add("talent-max");
+  }
+}
+  
+  function unlockAllTalents(characterId) {
+
+  const data = loadUnlockedTalents();
+
+  const char = characters.find(c => String(c["ID"]) === String(characterId));
+
+  if (!char) {
+    return;
+  }
+
+  ["本能", "超本能"].forEach(title => {
+
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+
+      const key = makeTalentKey(char, title, index);
+
+      const maxLevel = getTalentMaxLevel(char, talent);
+
+      // レベルあり → MAX
+      if (maxLevel > 0) {
+        data[key] = maxLevel;
+      }
+      // レベルなし → ON
+      else {
+        data[key] = 1;
+      }
+
+    });
+
+  });
+
+  saveUnlockedTalents(data);
+
+  refreshVisibleTalentStates();
+  updateRemainingMeta(characterId);
+  updateNpSummary(getRarityFilteredCharacters());
+  updateUnlockAllButtons();
+}
+
+  function unlockNonResistanceTalents(characterId) {
+
+  const data = loadUnlockedTalents();
+
+  const char = characters.find(
+    c => String(c["ID"]) === String(characterId)
+  );
+
+  if (!char) {
+    return;
+  }
+
+  ["本能", "超本能"].forEach(title => {
+
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+
+      // 耐性は除外
+      if (isResistanceTalent(talent["能力名"])) {
+        return;
+      }
+
+      const key = makeTalentKey(char, title, index);
+
+      const maxLevel =
+        getTalentMaxLevel(char, talent);
+
+      // レベルあり
+      if (maxLevel > 0) {
+        data[key] = maxLevel;
+      }
+      // レベルなし
+      else {
+        data[key] = 1;
+      }
+
+    });
+
+  });
+
+  saveUnlockedTalents(data);
+
+  refreshVisibleTalentStates();
+  updateRemainingMeta(characterId);
+  updateNpSummary(getRarityFilteredCharacters());
+  updateUnlockAllButtons();
+}
+
+  function isCharacterFullyUnlocked(char) {
+
+  const unlocked = loadUnlockedTalents();
+
+  const allTalents = [
+    ...(char["本能"] || []),
+    ...(char["超本能"] || [])
+  ];
+
+  return allTalents.every((talent, index) => {
+
+    const title =
+      index < (char["本能"] || []).length
+        ? "本能"
+        : "超本能";
+
+    const talentIndex =
+      title === "本能"
+        ? index
+        : index - (char["本能"] || []).length;
+
+    const key = makeTalentKey(char, title, talentIndex);
+
+    const savedLevel = Number(unlocked[key] || 0);
+
+    const maxLevel = getTalentMaxLevel(char, talent);
+
+    // レベルあり
+    if (maxLevel > 0) {
+      return savedLevel >= maxLevel;
+    }
+
+    // レベルなし
+    return savedLevel > 0;
+  });
+}
+
+  function isCharacterNonResistanceUnlocked(char) {
+
+  const unlocked = loadUnlockedTalents();
+
+  const allTalents = [
+    ...(char["本能"] || []).map(t => ({
+      title: "本能",
+      talent: t
+    })),
+
+    ...(char["超本能"] || []).map(t => ({
+      title: "超本能",
+      talent: t
+    }))
+  ];
+
+  return allTalents
+    .filter(({ talent }) =>
+      !isResistanceTalent(talent["能力名"])
+    )
+    .every(({ title, talent }, filteredIndex) => {
+
+      const talents =
+        char[title] || [];
+
+      const talentIndex =
+        talents.indexOf(talent);
+
+      const key =
+        makeTalentKey(char, title, talentIndex);
+
+      const savedLevel =
+        Number(unlocked[key] || 0);
+
+      const maxLevel =
+        getTalentMaxLevel(char, talent);
+
+      // レベルあり
+      if (maxLevel > 0) {
+        return savedLevel >= maxLevel;
+      }
+
+      // レベルなし
+      return savedLevel > 0;
+    });
+}
+
+  function updateUnlockAllButtons() {
+
+  // 全開放
+  document.querySelectorAll(".unlock-all-button")
+    .forEach(button => {
+
+      const characterId =
+        button.dataset.characterId;
+
+      const char = characters.find(
+        c => String(c["ID"]) === String(characterId)
+      );
+
+      if (!char) return;
+
+      const fullyUnlocked =
+        isCharacterFullyUnlocked(char);
+
+      button.classList.toggle(
+        "unlock-complete",
+        fullyUnlocked
+      );
+
+      button.disabled = fullyUnlocked;
+    });
+
+  // 耐性以外
+  document.querySelectorAll(".unlock-nonresist-button")
+    .forEach(button => {
+
+      const characterId =
+        button.dataset.nonresistCharacterId;
+
+      const char = characters.find(
+        c => String(c["ID"]) === String(characterId)
+      );
+
+      if (!char) return;
+
+      const unlocked =
+        isCharacterNonResistanceUnlocked(char);
+
+      button.classList.toggle(
+        "unlock-complete",
+        unlocked
+      );
+
+      button.disabled = unlocked;
+    });
+}
+
+  function refreshVisibleTalentStates() {
+  document.querySelectorAll(".talent").forEach(box => {
+    const key = box.dataset.key;
+    const charId = box.dataset.charId;
+    const title = box.dataset.title;
+    const index = Number(box.dataset.index);
+
+    const char = characters.find(c => String(c["ID"]) === String(charId));
+    if (!char) return;
+
+    const talent = char[title]?.[index];
+    if (!talent) return;
+
+    const unlocked = loadUnlockedTalents();
+    const level = Number(unlocked[key] || 0);
+
+    const totalNp = getTalentTotalNp(talent);
+    const maxLevel = getTalentMaxLevel(char, talent);
+    const usedNp = getUsedNpByLevel(char, talent, level);
+
+    const npText = box.querySelector(".talent-np");
+    const select = box.querySelector(".talent-level");
+    const checkbox = box.querySelector(".talent-check");
+
+    if (npText) {
+      if (maxLevel > 0 && level > 0 && level < maxLevel) {
+        npText.textContent = `${usedNp}/${totalNp}NP`;
+      } else {
+        npText.textContent = `NP:${totalNp}`;
+      }
+    }
+
+    if (select) {
+      select.value = String(level);
+    }
+
+    if (checkbox) {
+      checkbox.checked = maxLevel > 0 ? level >= maxLevel : level > 0;
+    }
+
+    updateTalentBoxColor(box, level, maxLevel);
+  });
+}
+
+  function resetCharacterTalents(characterId) {
+
+  const char = characters.find(
+    c => String(c["ID"]) === String(characterId)
+  );
+
+  if (!char) return;
+
+  const ok = confirm(
+    `${char["キャラ名"]} の本能開放状況をリセットしますか？`
+  );
+
+  if (!ok) return;
+
+  const data = loadUnlockedTalents();
+
+  ["本能", "超本能"].forEach(title => {
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+      const key = makeTalentKey(char, title, index);
+      delete data[key];
+    });
+  });
+
+  saveUnlockedTalents(data);
+
+  refreshVisibleTalentStates();
+  updateRemainingMeta(characterId);
+  updateNpSummary(getRarityFilteredCharacters());
+  updateUnlockAllButtons();
+}
+</script>
+
+<button id="topButton" onclick="scrollToTop()">↑</button>
+</body>
+</html>
 
