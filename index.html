@@ -1022,12 +1022,15 @@ function updateNpSummary(targetCharacters) {
     return "";
   }
 
-  if (remain.remainNp === remain.remainNonResistanceNp) {
-    return `
-      未開放：
-      ${remain.remainNp.toLocaleString()} NP
-    `;
-  }
+  if (
+  remain.remainNonResistanceNp <= 0 ||
+  remain.remainNp === remain.remainNonResistanceNp
+) {
+  return `
+    未開放：
+    ${remain.remainNp.toLocaleString()} NP
+  `;
+}
 
   return `
     未開放：
