@@ -435,6 +435,20 @@ select {
   color: #777;
   font-size: 14px;
 }
+
+  #superTalentButton {
+  font-size: 16px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #666;
+  color: white;
+  cursor: pointer;
+}
+
+#superTalentButton.super-filter-on {
+  background: #ff9800;
+}
 </style>
 </head>
 
@@ -444,7 +458,12 @@ select {
 
 <div class="controls">
   <input type="text" id="charSearchInput" placeholder="キャラ名で検索">
-  <input type="text" id="talentSearchInput" placeholder="本能・超本能で検索"> 
+  <input type="text" id="talentSearchInput" placeholder="本能・超本能で検索">
+
+  <button id="superTalentButton" onclick="toggleSuperTalentFilter()">
+    超本能のみOFF
+  </button>
+  
   <button id="starFilterButton" onclick="toggleStarFilter()">
     ☆表示
   </button>
@@ -473,6 +492,7 @@ let characters = [];
 let filteredCharacters = [];
 let useShortTalentName = true;
 let starFilterOnly = false;
+let superTalentOnly = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -538,6 +558,14 @@ const rarity = document.getElementById("rarityFilter").value;
   list.innerHTML = "";
 
   filteredCharacters = characters.filter(char => {
+
+  // 超本能のみ
+  if (
+    superTalentOnly &&
+    (!char["超本能"] || char["超本能"].length === 0)
+  ) {
+    return false;
+  }
 
   if (starFilterOnly && !isCharacterStarred(char)) {
     return false;
@@ -1450,6 +1478,26 @@ function toggleStarFilter() {
   button.textContent = starFilterOnly
     ? "★表示解除"
     : "☆表示";
+
+  renderList();
+}
+
+  function toggleSuperTalentFilter() {
+
+  superTalentOnly = !superTalentOnly;
+
+  const button =
+    document.getElementById("superTalentButton");
+
+  button.classList.toggle(
+    "super-filter-on",
+    superTalentOnly
+  );
+
+  button.textContent =
+    superTalentOnly
+      ? "超本能のみ"
+      : "超本能のみ";
 
   renderList();
 }
