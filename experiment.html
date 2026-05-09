@@ -452,25 +452,48 @@ select {
   color: white;
   cursor: pointer;
 }
+
+  .top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 12px;
+  flex-wrap: wrap;
+
+  margin-bottom: 12px;
+}
+
+.top-header h1 {
+  margin: 0;
+}
+
+.account-area {
+  margin-bottom: 0;
+}
 </style>
 </head>
 
 <body>
 
-<h1>本能一覧　Ver.15.3.0対応</h1>
+<div class="top-header">
+
+  <h1>本能一覧　Ver.15.3.0対応</h1>
 
   <div class="account-area">
-  <select id="accountSelect" onchange="changeAccount()"></select>
+    <select id="accountSelect" onchange="changeAccount()"></select>
 
-  <button onclick="addAccount()">
-    アカウント追加
-  </button>
+    <button onclick="addAccount()">
+      アカウント追加
+    </button>
 
-  <button onclick="renameAccount()">
-    名前変更
-  </button>
+    <button onclick="renameAccount()">
+      名前変更
+    </button>
+  </div>
+
 </div>
-
+  
 <div class="controls">
   <input type="text" id="charSearchInput" placeholder="キャラ名で検索">
   <input type="text" id="talentSearchInput" placeholder="本能・超本能で検索"> 
