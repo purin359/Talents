@@ -678,30 +678,11 @@ const rarity = document.getElementById("rarityFilter").value;
 
           })()}
           </div>
-          <div class="meta remaining-meta">
-            ${(() => {
-              const remain = getCharacterRemainingNp(char);
-
-              // 全開放、または一つも開けてない場合は表示しない
-              if (remain.remainNp <= 0 || remain.remainNp === remain.totalNp) {
-                return "";
-              }
-
-              if (remain.remainNp === remain.remainNonResistanceNp) {
-                return `
-                  未開放：
-                  ${remain.remainNp.toLocaleString()} NP
-                `;
-              }
-
-              return `
-                未開放：
-                ${remain.remainNp.toLocaleString()} NP
-                /
-                耐性なし：
-                ${remain.remainNonResistanceNp.toLocaleString()} NP
-              `;
-            })()}
+          <div
+            class="meta remaining-meta"
+            data-remaining-character-id="${escapeAttr(char["ID"])}"
+          >
+            ${makeRemainingMetaHtml(char)}
           </div>
         </div>
       </div>
@@ -1033,6 +1014,43 @@ function updateNpSummary(targetCharacters) {
   `;
 }
 
+  function makeRemainingMetaHtml(char) {
+  const remain = getCharacterRemainingNp(char);
+
+  // 全開放、または一つも開けてない場合は表示しない
+  if (remain.remainNp <= 0 || remain.remainNp === remain.totalNp) {
+    return "";
+  }
+
+  if (remain.remainNp === remain.remainNonResistanceNp) {
+    return `
+      未開放：
+      ${remain.remainNp.toLocaleString()} NP
+    `;
+  }
+
+  return `
+    未開放：
+    ${remain.remainNp.toLocaleString()} NP
+    /
+    耐性なし：
+    ${remain.remainNonResistanceNp.toLocaleString()} NP
+  `;
+}
+
+  function updateRemainingMeta(charId) {
+  const char = characters.find(c => String(c["ID"]) === String(charId));
+  if (!char) return;
+
+  const el = document.querySelector(
+    `.remaining-meta[data-remaining-character-id="${CSS.escape(String(charId))}"]`
+  );
+
+  if (el) {
+    el.innerHTML = makeRemainingMetaHtml(char);
+  }
+}
+
 function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char = null) {
   if (!talents || talents.length === 0) {
     return "";
@@ -1356,6 +1374,11 @@ function setTalentLevel(key, level, element = null) {
     }
   }
 
+  if (element) {
+  const box = element.closest(".talent");
+  updateRemainingMeta(box?.dataset.charId);
+}
+
   updateNpSummary(getRarityFilteredCharacters());
   updateUnlockAllButtons();
 }
@@ -1482,6 +1505,7 @@ function toggleStarFilter() {
   saveUnlockedTalents(data);
 
   refreshVisibleTalentStates();
+  updateRemainingMeta(characterId);
   updateNpSummary(getRarityFilteredCharacters());
   updateUnlockAllButtons();
 }
@@ -1530,6 +1554,7 @@ function toggleStarFilter() {
   saveUnlockedTalents(data);
 
   refreshVisibleTalentStates();
+  updateRemainingMeta(characterId);
   updateNpSummary(getRarityFilteredCharacters());
   updateUnlockAllButtons();
 }
@@ -1741,6 +1766,7 @@ function toggleStarFilter() {
   saveUnlockedTalents(data);
 
   refreshVisibleTalentStates();
+  updateRemainingMeta(characterId);
   updateNpSummary(getRarityFilteredCharacters());
   updateUnlockAllButtons();
 }
