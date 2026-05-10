@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>本能ランキングツール</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #f7f7f7;
+}
+
+h1 {
+  font-size: 26px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+select {
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+
+h2 {
+  font-size: 20px;
+  margin-top: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background: #f0f0f0;
+}
+
+.rank {
+  width: 50px;
+  text-align: center;
+}
+
+.np {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty {
+  color: #999;
+}
+</style>
+</head>
+
+<body>
+
+<h1>本能ランキングツール</h1>
+
+<div class="controls">
+  <select id="rarityFilter">
+    <option value="">全レアリティ</option>
+  </select>
+</div>
+
+<div class="section">
+  <h2>合計NPランキング</h2>
+  <div id="npRanking"></div>
+</div>
+
+<div class="section">
+  <h2>最も多い本能の能力ランキング</h2>
+  <div id="abilityRanking"></div>
+</div>
+
+<script>
+let characters = [];
+
+fetch("talents.json")
+  .then(res => res.json())
+  .then(data => {
+    characters = data;
+    setupRarityFilter();
+    renderRankings();
+  })
+  .catch(err => {
+    document.body.innerHTML += "<p class='empty'>talents.json を読み込めませんでした。</p>";
+    console.error(err);
+  });
+
+document.getElementById("rarityFilter").addEventListener("change", renderRankings);
+
+function setupRarityFilter() {
+  const select = document.getElementById("rarityFilter");
+
+  const rarities = [...new Set(
+    characters
+      .map(c => c["レアリティ"])
+      .filter(r => r)
+  )];
+
+  rarities.forEach(rarity => {
+    const option = document.createElement("option");
+    option.value = rarity;
+    option.textContent = rarity;
+    select.appendChild(option);
+  });
+}
+
+function renderRankings() {
+  const rarity = document.getElementById("rarityFilter").value;
+
+  const filtered = characters.filter(char => {
+    if (rarity && char["レアリティ"] !== rarity) {
+      return false;
+    }
+    return true;
+  });
+
+  renderNpRanking(filtered);
+  renderAbilityRanking(filtered);
+}
+
+function getAllTalents(char) {
+  return [
+    ...(char["本能"] || []),
+    ...(char["超本能"] || [])
+  ];
+}
+
+function sumNpText(npText) {
+  return String(npText ?? "")
+    .split(",")
+    .map(v => Number(v.trim()))
+    .filter(v => !isNaN(v))
+    .reduce((sum, v) => sum + v, 0);
+}
+
+function getCharacterTotalNp(char) {
+  return getAllTalents(char).reduce((sum, talent) => {
+    return sum + sumNpText(talent["消費NP"]);
+  }, 0);
+}
+
+function renderNpRanking(list) {
+  const ranking = list
+    .map(char => ({
+      id: char["ID"],
+      name: char["キャラ名"],
+      rarity: char["レアリティ"],
+      totalNp: getCharacterTotalNp(char)
+    }))
+    .sort((a, b) => b.totalNp - a.totalNp);
+
+  let html = `
+    <table>
+      <tr>
+        <th class="rank">順位</th>
+        <th>キャラ名</th>
+        <th>レアリティ</th>
+        <th class="np">合計NP</th>
+      </tr>
+  `;
+
+  ranking.forEach((item, index) => {
+    html += `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${escapeHtml(item.rarity)}</td>
+        <td class="np">${item.totalNp.toLocaleString()} NP</td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  document.getElementById("npRanking").innerHTML = html;
+}
+
+function renderAbilityRanking(list) {
+  const countMap = {};
+
+  list.forEach(char => {
+    getAllTalents(char).forEach(talent => {
+      const name = talent["能力名"];
+
+      if (!name) return;
+
+      countMap[name] = (countMap[name] || 0) + 1;
+    });
+  });
+
+  const ranking = Object.entries(countMap)
+    .map(([name, count]) => ({
+      name,
+      count
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  let html = `
+    <table>
+      <tr>
+        <th class="rank">順位</th>
+        <th>能力名</th>
+        <th class="np">数</th>
+      </tr>
+  `;
+
+  ranking.forEach((item, index) => {
+    html += `
+      <tr>
+        <td class="rank">${index + 1}</td>
+        <td>${escapeHtml(item.name)}</td>
+        <td class="np">${item.count.toLocaleString()}個</td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  document.getElementById("abilityRanking").innerHTML = html;
+}
+
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+</script>
+
+</body>
+</html>
