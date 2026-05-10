@@ -94,6 +94,13 @@ th {
 .ranking-tab.active {
   background: #2196F3;
 }
+
+  .ranking-icon {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  display: block;
+}
 </style>
 </head>
 
@@ -245,6 +252,7 @@ function renderNpRanking(list) {
       id: char["ID"],
       name: char["キャラ名"],
       rarity: char["レアリティ"],
+      image: char["画像名"],
       totalNp: getCharacterTotalNp(char)
     }))
     .sort((a, b) => b.totalNp - a.totalNp);
@@ -253,6 +261,7 @@ function renderNpRanking(list) {
     <table>
       <tr>
         <th class="rank">順位</th>
+        <th>画像</th>
         <th>キャラ名</th>
         <th>レアリティ</th>
         <th class="np">合計NP</th>
@@ -263,9 +272,23 @@ function renderNpRanking(list) {
     html += `
       <tr>
         <td class="rank">${index + 1}</td>
+
+        <td>
+          <img
+            class="ranking-icon"
+            src="${escapeHtml(item.image)}"
+            alt="${escapeHtml(item.name)}"
+            onerror="this.src='image/noimage.png'"
+          >
+        </td>
+
         <td>${escapeHtml(item.name)}</td>
+
         <td>${escapeHtml(item.rarity)}</td>
-        <td class="np">${item.totalNp.toLocaleString()} NP</td>
+
+        <td class="np">
+          ${item.totalNp.toLocaleString()} NP
+        </td>
       </tr>
     `;
   });
