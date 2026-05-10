@@ -139,23 +139,33 @@ th {
 }
 
   .back-link-button {
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: fit-content;
 
   margin-bottom: 14px;
 
-  padding: 10px 16px;
+  padding: 6px 10px;
 
-  background: #666;
-  color: white;
-
-  border-radius: 10px;
-
-  text-decoration: none;
+  font-size: 14px;
   font-weight: bold;
+
+  color: #555;
+  text-decoration: none;
+
+  background: white;
+
+  border: 1px solid #ccc;
+  border-radius: 8px;
+
+  transition: 0.15s;
 }
 
 .back-link-button:hover {
-  opacity: 0.9;
+  background: #f5f5f5;
+  border-color: #999;
 }
 </style>
 </head>
