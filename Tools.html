@@ -332,7 +332,6 @@ function renderNpRanking(list) {
   return String(name ?? "")
     .replace(/【[^】]*】/g, "")
     .replace(/強化/g, "")
-    .replace(/\s+/g, "")
     .trim();
 }
 
