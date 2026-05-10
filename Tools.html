@@ -156,6 +156,14 @@ th {
   >
     略称ON
   </button>
+
+  <button
+    id="excludeResistanceButton"
+    class="ranking-tab"
+    onclick="toggleExcludeResistanceNp()"
+  >
+    耐性込み
+  </button>
   
   <button
     id="mergeAbilityButton"
@@ -202,6 +210,7 @@ let characters = [];
 let currentRankingType = "np";
 let mergeAbilityNames = true;
 let useShortAbilityName = true;
+let excludeResistanceNp = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -285,6 +294,14 @@ function renderRankings() {
         ? ""
         : "none";
 
+    const excludeButton =
+      document.getElementById("excludeResistanceButton");
+
+    excludeButton.style.display =
+      type === "np"
+        ? ""
+        : "none";
+
   renderRankings();
 }
 
@@ -305,8 +322,16 @@ function sumNpText(npText) {
 
 function getCharacterTotalNp(char) {
   return getAllTalents(char).reduce((sum, talent) => {
+    if (excludeResistanceNp && isResistanceTalent(talent["能力名"])) {
+      return sum;
+    }
+
     return sum + sumNpText(talent["消費NP"]);
   }, 0);
+}
+
+function isResistanceTalent(name) {
+  return String(name ?? "").includes("耐性");
 }
 
 function renderNpRanking(list) {
@@ -367,6 +392,20 @@ function renderNpRanking(list) {
   html += "</table>";
 
   document.getElementById("rankingContent").innerHTML = html;
+}
+
+  function toggleExcludeResistanceNp() {
+  excludeResistanceNp = !excludeResistanceNp;
+
+  const button = document.getElementById("excludeResistanceButton");
+
+  button.textContent = excludeResistanceNp
+    ? "耐性除外"
+    : "耐性込み";
+
+  button.classList.toggle("active", excludeResistanceNp);
+
+  renderRankings();
 }
 
   function normalizeAbilityNameForRanking(name) {
