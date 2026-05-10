@@ -388,7 +388,8 @@ function renderAbilityRanking(list) {
 
           <button
             class="detail-toggle"
-            onclick="toggleAbilityDetail('${detailId}')"
+            data-detail-id="${detailId}"
+            onclick="toggleAbilityDetail('${detailId}', this)"
           >
             ▼
           </button>
@@ -422,14 +423,25 @@ function renderAbilityRanking(list) {
   document.getElementById("rankingContent").innerHTML = html;
 }
 
-  function toggleAbilityDetail(id) {
+  function toggleAbilityDetail(id, button) {
+
   const row = document.getElementById(id);
   if (!row) return;
 
+  const isOpen =
+    row.style.display === "table-row";
+
   row.style.display =
-    row.style.display === "none"
-      ? "table-row"
-      : "none";
+    isOpen
+      ? "none"
+      : "table-row";
+
+  if (button) {
+    button.textContent =
+      isOpen
+        ? "▼"
+        : "▲";
+  }
 }
 
 function escapeHtml(text) {
