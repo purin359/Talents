@@ -71,6 +71,29 @@ th {
 .empty {
   color: #999;
 }
+
+  .ranking-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ranking-tab {
+  border: none;
+  border-radius: 8px;
+
+  padding: 10px 14px;
+
+  background: #666;
+  color: white;
+
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.ranking-tab.active {
+  background: #2196F3;
+}
 </style>
 </head>
 
@@ -85,17 +108,38 @@ th {
 </div>
 
 <div class="section">
-  <h2>合計NPランキング</h2>
-  <div id="npRanking"></div>
-</div>
 
-<div class="section">
-  <h2>最も多い本能の能力ランキング</h2>
-  <div id="abilityRanking"></div>
+  <div class="ranking-tabs">
+
+    <button
+      id="npTabButton"
+      class="ranking-tab active"
+      onclick="switchRanking('np')"
+    >
+      合計NPランキング
+    </button>
+
+    <button
+      id="abilityTabButton"
+      class="ranking-tab"
+      onclick="switchRanking('ability')"
+    >
+      能力ランキング
+    </button>
+
+  </div>
+
+  <h2 id="rankingTitle">
+    合計NPランキング
+  </h2>
+
+  <div id="rankingContent"></div>
+
 </div>
 
 <script>
 let characters = [];
+let currentRankingType = "np";
 
 fetch("talents.json")
   .then(res => res.json())
@@ -129,17 +173,49 @@ function setupRarityFilter() {
 }
 
 function renderRankings() {
-  const rarity = document.getElementById("rarityFilter").value;
+
+  const rarity =
+    document.getElementById("rarityFilter").value;
 
   const filtered = characters.filter(char => {
+
     if (rarity && char["レアリティ"] !== rarity) {
       return false;
     }
+
     return true;
   });
 
-  renderNpRanking(filtered);
-  renderAbilityRanking(filtered);
+  if (currentRankingType === "np") {
+    renderNpRanking(filtered);
+  } else {
+    renderAbilityRanking(filtered);
+  }
+}
+
+  function switchRanking(type) {
+
+  currentRankingType = type;
+
+  document.getElementById("npTabButton")
+    .classList.toggle(
+      "active",
+      type === "np"
+    );
+
+  document.getElementById("abilityTabButton")
+    .classList.toggle(
+      "active",
+      type === "ability"
+    );
+
+  document.getElementById("rankingTitle")
+    .textContent =
+      type === "np"
+        ? "合計NPランキング"
+        : "最も多い本能の能力ランキング";
+
+  renderRankings();
 }
 
 function getAllTalents(char) {
@@ -196,7 +272,7 @@ function renderNpRanking(list) {
 
   html += "</table>";
 
-  document.getElementById("npRanking").innerHTML = html;
+  document.getElementById("rankingContent").innerHTML = html;
 }
 
 function renderAbilityRanking(list) {
@@ -240,7 +316,7 @@ function renderAbilityRanking(list) {
 
   html += "</table>";
 
-  document.getElementById("abilityRanking").innerHTML = html;
+  document.getElementById("rankingContent").innerHTML = html;
 }
 
 function escapeHtml(text) {
