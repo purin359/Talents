@@ -101,6 +101,28 @@ th {
   object-fit: contain;
   display: block;
 }
+
+  .detail-toggle {
+  margin-left: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.ability-char-images {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px;
+  background: #fafafa;
+}
+
+.ability-char-icon {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
 </style>
 </head>
 
@@ -312,18 +334,22 @@ function renderAbilityRanking(list) {
   list.forEach(char => {
     getAllTalents(char).forEach(talent => {
       const name = talent["能力名"];
-
       if (!name) return;
 
-      countMap[name] = (countMap[name] || 0) + 1;
+      if (!countMap[name]) {
+        countMap[name] = {
+          name,
+          count: 0,
+          chars: []
+        };
+      }
+
+      countMap[name].count++;
+      countMap[name].chars.push(char);
     });
   });
 
-  const ranking = Object.entries(countMap)
-    .map(([name, count]) => ({
-      name,
-      count
-    }))
+  const ranking = Object.values(countMap)
     .sort((a, b) => b.count - a.count);
 
   let html = `
@@ -335,12 +361,51 @@ function renderAbilityRanking(list) {
       </tr>
   `;
 
+  let currentRank = 0;
+  let prevCount = null;
+
   ranking.forEach((item, index) => {
+    if (item.count !== prevCount) {
+      currentRank = index + 1;
+      prevCount = item.count;
+    }
+
+    const detailId = `abilityDetail_${index}`;
+
     html += `
       <tr>
-        <td class="rank">${index + 1}</td>
-        <td>${escapeHtml(item.name)}</td>
-        <td class="np">${item.count.toLocaleString()}個</td>
+        <td class="rank">${currentRank}</td>
+
+        <td>
+          ${escapeHtml(item.name)}
+
+          <button
+            class="detail-toggle"
+            onclick="toggleAbilityDetail('${detailId}')"
+          >
+            ▼
+          </button>
+        </td>
+
+        <td class="np">
+          ${item.count.toLocaleString()}個
+        </td>
+      </tr>
+
+      <tr id="${detailId}" style="display:none;">
+        <td colspan="3">
+          <div class="ability-char-images">
+            ${item.chars.map(char => `
+              <img
+                class="ability-char-icon"
+                src="${escapeHtml(char["画像名"])}"
+                alt="${escapeHtml(char["キャラ名"])}"
+                title="${escapeHtml(char["キャラ名"])}"
+                onerror="this.src='image/noimage.png'"
+              >
+            `).join("")}
+          </div>
+        </td>
       </tr>
     `;
   });
@@ -348,6 +413,16 @@ function renderAbilityRanking(list) {
   html += "</table>";
 
   document.getElementById("rankingContent").innerHTML = html;
+}
+
+  function toggleAbilityDetail(id) {
+  const row = document.getElementById(id);
+  if (!row) return;
+
+  row.style.display =
+    row.style.display === "none"
+      ? "table-row"
+      : "none";
 }
 
 function escapeHtml(text) {
