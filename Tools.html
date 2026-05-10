@@ -147,6 +147,7 @@ th {
     id="mergeAbilityButton"
     class="ranking-tab active"
     onclick="toggleMergeAbilityNames()"
+    style="display:none;"
   >
     強化・属性まとめON
   </button>
@@ -260,6 +261,14 @@ function renderRankings() {
       type === "np"
         ? "合計NPランキング"
         : "最も多い本能の能力ランキング";
+
+    const mergeButton =
+      document.getElementById("mergeAbilityButton");
+
+    mergeButton.style.display =
+      type === "ability"
+        ? ""
+        : "none";
 
   renderRankings();
 }
