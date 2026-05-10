@@ -268,10 +268,18 @@ function renderNpRanking(list) {
       </tr>
   `;
 
+  let currentRank = 0;
+  let prevNp = null;
+
   ranking.forEach((item, index) => {
+
+    if (item.totalNp !== prevNp) {
+      currentRank = index + 1;
+      prevNp = item.totalNp;
+    }
     html += `
       <tr>
-        <td class="rank">${index + 1}</td>
+        <td class="rank">${currentRank}</td>
 
         <td>
           <img
