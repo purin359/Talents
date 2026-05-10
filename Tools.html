@@ -328,12 +328,20 @@ function renderNpRanking(list) {
   document.getElementById("rankingContent").innerHTML = html;
 }
 
+  function normalizeAbilityNameForRanking(name) {
+  return String(name ?? "")
+    .replace(/【[^】]*】/g, "")
+    .replace(/強化/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+}
+
 function renderAbilityRanking(list) {
   const countMap = {};
 
   list.forEach(char => {
     getAllTalents(char).forEach(talent => {
-      const name = talent["能力名"];
+      const name = normalizeAbilityNameForRanking(talent["能力名"]);
       if (!name) return;
 
       if (!countMap[name]) {
