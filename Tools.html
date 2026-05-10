@@ -131,6 +131,12 @@ th {
 .ability-row:hover {
   background: #f7f7f7;
 }
+
+  .ability-char-super {
+  background: #ffe0b2;
+  border-radius: 8px;
+  padding: 2px;
+}
 </style>
 </head>
 
@@ -450,7 +456,16 @@ function renderAbilityRanking(list) {
           <div class="ability-char-images">
             ${item.chars.map(char => `
               <img
-                class="ability-char-icon"
+                class="
+                  ability-char-icon
+                  ${
+                    (char["超本能"] || []).some(t =>
+                      normalizeAbilityNameForRanking(t["能力名"]) === item.name
+                    )
+                      ? "ability-char-super"
+                      : ""
+                  }
+                "
                 src="${escapeHtml(char["画像名"])}"
                 alt="${escapeHtml(char["キャラ名"])}"
                 title="${escapeHtml(char["キャラ名"])}"
