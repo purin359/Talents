@@ -694,13 +694,6 @@ document.getElementById("charSearchInput").addEventListener("input", renderList)
 document.getElementById("talentSearchInput").addEventListener("input", renderList);
 document.getElementById("rarityFilter").addEventListener("change", renderList);
 
-  // 新キャラ
-  const NEW_CHARACTERS = [
-    "大狩猟娘テルンζ",
-    "Gデスハーデス",
-    "キャラ名3"
-  ];
-
 function setupRarityFilter() {
   const select = document.getElementById("rarityFilter");
 
@@ -2517,6 +2510,12 @@ function saveStarTalents(data) {
   }
 
   // NEW
+  const NEW_CHARACTERS = [
+    "大狩猟娘テルンζ",
+    "Gデスハーデス",
+    "キャラ名3"
+  ];
+  
   function isNewCharacter(char) {
   return NEW_CHARACTERS.includes(char["キャラ名"]);
 }
