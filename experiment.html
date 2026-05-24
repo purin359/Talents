@@ -1289,13 +1289,14 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
             charStarred && !isMax
               ? `
                 <button
-                class="talent-star-button ${talentStarOn ? "talent-star-on" : ""}"
-                 onclick="toggleTalentStar('${escapeAttr(key)}')"
+                  class="talent-star-button ${talentStarOn ? "talent-star-on" : ""}"
+                  data-talent-key="${escapeAttr(key)}"
+                  onclick="toggleTalentStar('${escapeAttr(key)}')"
                 >
                   ${talentStarOn ? "★" : "☆"}
                 </button>
               `
-              : ""
+            : ""
           }
         </div>
       </div>
@@ -2119,17 +2120,68 @@ function saveStarTalents(data) {
 }
 
   function toggleTalentStar(key) {
-  const data = loadStarTalents();
+  const starTalents = loadStarTalents();
 
-  if (data[key]) {
-    delete data[key];
+  if (starTalents[key]) {
+    delete starTalents[key];
   } else {
-    data[key] = true;
+    starTalents[key] = true;
   }
 
-  saveStarTalents(data);
+  saveStarTalents(starTalents);
+
+  // ボタン表示を即変更
+  const button = document.querySelector(
+    `.talent-star-button[data-talent-key="${CSS.escape(key)}"]`
+  );
+
+  if (button) {
+    const on = !!starTalents[key];
+    button.classList.toggle("talent-star-on", on);
+    button.textContent = on ? "★" : "☆";
+  }
+
+  updateCharacterStarByTalentStars(key);
   updateNpSummary(getRarityFilteredCharacters());
-  refreshVisibleTalentStates();
+}
+
+  function updateCharacterStarByTalentStars(key) {
+  const parts = key.split("_");
+  const charId = parts[0];
+
+  const char = characters.find(c => String(c["ID"]) === String(charId));
+  if (!char) return;
+
+  const starTalents = loadStarTalents();
+  const starChars = loadStarCharacters();
+
+  const hasAnyTalentStar = ["本能", "超本能"].some(title => {
+    const talents = char[title] || [];
+
+    return talents.some((talent, index) => {
+      const talentKey = makeTalentKey(char, title, index);
+      return !!starTalents[talentKey];
+    });
+  });
+
+  const charKey = makeCharacterStarKey(char);
+
+  if (hasAnyTalentStar) {
+    starChars[charKey] = true;
+  } else {
+    delete starChars[charKey];
+  }
+
+  saveStarCharacters(starChars);
+
+  const charStarButton = document.querySelector(
+    `.star-button[data-character-id="${CSS.escape(String(char["ID"]))}"]`
+  );
+
+  if (charStarButton) {
+    charStarButton.classList.toggle("star-on", hasAnyTalentStar);
+    charStarButton.textContent = hasAnyTalentStar ? "★" : "☆";
+  }
 }
 </script>
 
