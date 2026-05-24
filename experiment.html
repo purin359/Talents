@@ -540,6 +540,15 @@ select {
 .talent-star-button.talent-star-on {
   color: #f9a825;
 }
+
+  .status-filter-area {
+  margin-bottom: 12px;
+}
+
+#statusFilter {
+  font-size: 15px;
+  padding: 8px 10px;
+}
 </style>
 </head>
 
@@ -590,6 +599,15 @@ select {
   <a class="tools-link-button" href="Tools.html">
     その他
   </a>
+</div>
+
+<div class="status-filter-area">
+  <select id="statusFilter" onchange="renderList()">
+    <option value="all">全て</option>
+    <option value="opened">開放済みのみ</option>
+    <option value="full">全開放のみ</option>
+    <option value="none">未開放のみ</option>
+  </select>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -669,6 +687,7 @@ const talentSearch = normalizeText(
 );
 
 const rarity = document.getElementById("rarityFilter").value;
+const statusFilter = document.getElementById("statusFilter").value;
 
   list.innerHTML = "";
 
@@ -687,6 +706,20 @@ const rarity = document.getElementById("rarityFilter").value;
   }
 
   if (rarity && char["レアリティ"] !== rarity) {
+    return false;
+  }
+
+  const unlockStatus = getCharacterUnlockStatus(char);
+
+  if (statusFilter === "opened" && !unlockStatus.isOpened) {
+    return false;
+  }
+
+  if (statusFilter === "full" && !unlockStatus.isFull) {
+    return false;
+  }
+
+  if (statusFilter === "none" && !unlockStatus.isNone) {
     return false;
   }
 
@@ -2261,6 +2294,43 @@ function saveStarTalents(data) {
   if (changed) {
     saveStarTalents(starTalents);
   }
+}
+
+  // 開放フィルター
+  function getCharacterUnlockStatus(char) {
+  const unlocked = loadUnlockedTalents();
+
+  let totalCount = 0;
+  let openedCount = 0;
+  let fullCount = 0;
+
+  ["本能", "超本能"].forEach(title => {
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+      totalCount++;
+
+      const key = makeTalentKey(char, title, index);
+      const level = Number(unlocked[key] || 0);
+
+      if (level > 0) {
+        openedCount++;
+      }
+
+      if (isTalentMax(char, talent, level)) {
+        fullCount++;
+      }
+    });
+  });
+
+  return {
+    totalCount,
+    openedCount,
+    fullCount,
+    isOpened: openedCount > 0,
+    isFull: totalCount > 0 && fullCount === totalCount,
+    isNone: openedCount === 0
+  };
 }
 </script>
 
