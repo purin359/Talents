@@ -2472,41 +2472,8 @@ function saveStarTalents(data) {
   if (!hasNonResistance) {
     return false;
   }
-
-  // 耐性本能が1つでも未MAX
-  const hasResistanceUnopened =
-    talents
-      .filter(({ talent }) =>
-        isResistanceTalent(
-          talent["能力名"]
-        )
-      )
-      .some(({ title, talent }) => {
-
-        const talents =
-          char[title] || [];
-
-        const index =
-          talents.indexOf(talent);
-
-        const key =
-          makeTalentKey(char, title, index);
-
-        const level =
-          Number(unlocked[key] || 0);
-
-        return !isTalentMax(
-          char,
-          talent,
-          level
-        );
-      });
-
-  return (
-    nonResistanceFull &&
-    hasResistanceUnopened
-  );
-}
+    return nonResistanceFull;
+  }
 </script>
 
 <button id="topButton" onclick="scrollToTop()">↑</button>
