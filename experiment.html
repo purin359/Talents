@@ -568,6 +568,26 @@ select {
 #fullIncludeResistanceButton.active {
   background: #2196F3;
 }
+
+  .new-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: 6px;
+
+  padding: 2px 6px;
+
+  border-radius: 999px;
+
+  background: #ff3b30;
+  color: white;
+
+  font-size: 11px;
+  font-weight: bold;
+
+  line-height: 1;
+}
 </style>
 </head>
 
@@ -657,9 +677,6 @@ fetch("talents.json")
   characters = data;
   setupRarityFilter();
 
-  // 既存のキャラ★から未MAX本能へ★を自動付与
-  syncTalentStarsFromCharacterStars();
-
   renderList();
 })
   .catch(err => {
@@ -671,6 +688,13 @@ fetch("talents.json")
 document.getElementById("charSearchInput").addEventListener("input", renderList);
 document.getElementById("talentSearchInput").addEventListener("input", renderList);
 document.getElementById("rarityFilter").addEventListener("change", renderList);
+
+  // 新キャラ
+  const NEW_CHARACTERS = [
+    "大狩猟娘テルンζ",
+    "Gデスハーデス",
+    "キャラ名3"
+  ];
 
 function setupRarityFilter() {
   const select = document.getElementById("rarityFilter");
@@ -831,6 +855,12 @@ const statusFilter = document.getElementById("statusFilter").value;
 
             <div class="name">
               ${escapeHtml(char["キャラ名"])}
+
+              ${
+                isNewCharacter(char)
+                  ? `<span class="new-badge">NEW</span>`
+                  : ""
+              }
             </div>
 
             <div class="unlock-buttons">
@@ -2243,7 +2273,6 @@ function saveStarTalents(data) {
 
   saveStarTalents(starTalents);
 
-  // ボタン表示を即変更
   const button = document.querySelector(
     `.talent-star-button[data-talent-key="${CSS.escape(key)}"]`
   );
@@ -2257,7 +2286,7 @@ function saveStarTalents(data) {
   updateCharacterStarByTalentStars(key);
   updateNpSummary(getRarityFilteredCharacters());
 }
-
+  
   function updateCharacterStarByTalentStars(key) {
   const parts = key.split("_");
   const charId = parts[0];
@@ -2474,6 +2503,11 @@ function saveStarTalents(data) {
   }
     return nonResistanceFull;
   }
+
+  // NEW
+  function isNewCharacter(char) {
+  return NEW_CHARACTERS.includes(char["キャラ名"]);
+}
 </script>
 
 <button id="topButton" onclick="scrollToTop()">↑</button>
