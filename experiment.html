@@ -608,10 +608,14 @@ let superTalentOnly = false;
 fetch("talents.json")
   .then(res => res.json())
   .then(data => {
-    characters = data;
-    setupRarityFilter();
-    renderList();
-  })
+  characters = data;
+  setupRarityFilter();
+
+  // 既存のキャラ★から未MAX本能へ★を自動付与
+  syncTalentStarsFromCharacterStars();
+
+  renderList();
+})
   .catch(err => {
     document.getElementById("list").innerHTML =
       "<p class='empty'>talents.json を読み込めませんでした。</p>";
@@ -2216,6 +2220,46 @@ function saveStarTalents(data) {
   if (charStarButton) {
     charStarButton.classList.toggle("star-on", hasAnyTalentStar);
     charStarButton.textContent = hasAnyTalentStar ? "★" : "☆";
+  }
+}
+
+  function syncTalentStarsFromCharacterStars() {
+  const starChars = loadStarCharacters();
+  const starTalents = loadStarTalents();
+  const unlocked = loadUnlockedTalents();
+
+  let changed = false;
+
+  characters.forEach(char => {
+    if (!isCharacterStarred(char)) return;
+
+    ["本能", "超本能"].forEach(title => {
+      const talents = char[title] || [];
+
+      talents.forEach((talent, index) => {
+        const key = makeTalentKey(char, title, index);
+        const level = Number(unlocked[key] || 0);
+
+        // MAX済みなら本能★は付けない
+        if (isTalentMax(char, talent, level)) {
+          if (starTalents[key]) {
+            delete starTalents[key];
+            changed = true;
+          }
+          return;
+        }
+
+        // 未MAXなら本能★を付ける
+        if (!starTalents[key]) {
+          starTalents[key] = true;
+          changed = true;
+        }
+      });
+    });
+  });
+
+  if (changed) {
+    saveStarTalents(starTalents);
   }
 }
 </script>
