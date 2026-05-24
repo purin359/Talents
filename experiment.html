@@ -569,24 +569,23 @@ select {
   background: #2196F3;
 }
 
-  .new-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  #newFilterButton {
+  font-size: 16px;
+  padding: 10px 12px;
 
-  margin-left: 6px;
+  border: none;
+  border-radius: 8px;
 
-  padding: 3px 8px;
-
-  border-radius: 999px;
-
-  background: #ff3b30;
+  background: #666;
   color: white;
 
-  font-size: 13px;
-  font-weight: bold;
+  cursor: pointer;
 
-  line-height: 1;
+  transition: 0.15s;
+}
+
+#newFilterButton.new-filter-on {
+  background: #ff3b30;
 }
 </style>
 </head>
