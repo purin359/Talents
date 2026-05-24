@@ -576,14 +576,14 @@ select {
 
   margin-left: 6px;
 
-  padding: 2px 6px;
+  padding: 3px 8px;
 
   border-radius: 999px;
 
   background: #ff3b30;
   color: white;
 
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
 
   line-height: 1;
@@ -655,6 +655,10 @@ select {
 >
   耐性以外を含む
 </button>
+
+<button id="newFilterButton" onclick="toggleNewFilter()">
+  NEWのみ
+</button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -670,6 +674,7 @@ let useShortTalentName = true;
 let starFilterOnly = false;
 let superTalentOnly = false;
 let fullExcludeResistance = false;
+let newFilterOnly = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -754,6 +759,13 @@ const statusFilter = document.getElementById("statusFilter").value;
   }
 
   if (starFilterOnly && !isCharacterStarred(char)) {
+    return false;
+  }
+
+  if (
+    newFilterOnly &&
+    !isNewCharacter(char)
+  ) {
     return false;
   }
 
@@ -2507,6 +2519,21 @@ function saveStarTalents(data) {
   // NEW
   function isNewCharacter(char) {
   return NEW_CHARACTERS.includes(char["キャラ名"]);
+}
+
+  function toggleNewFilter() {
+
+  newFilterOnly = !newFilterOnly;
+
+  const button =
+    document.getElementById("newFilterButton");
+
+  button.classList.toggle(
+    "new-filter-on",
+    newFilterOnly
+  );
+
+  renderList();
 }
 </script>
 
