@@ -527,6 +527,47 @@ select {
   background: #f5f5f5;
   border-color: #999;
 }
+
+  .talent-star-button {
+  border: none;
+  background: transparent;
+  color: #bbb;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.talent-star-button.talent-star-on {
+  color: #f9a825;
+}
+
+  .status-filter-area {
+  margin-bottom: 12px;
+}
+
+#statusFilter {
+  font-size: 15px;
+  padding: 8px 10px;
+}
+
+  #fullIncludeResistanceButton {
+  margin-left: 8px;
+
+  font-size: 14px;
+  padding: 8px 10px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #666;
+  color: white;
+
+  cursor: pointer;
+}
+
+#fullIncludeResistanceButton.active {
+  background: #2196F3;
+}
 </style>
 </head>
 
@@ -579,6 +620,23 @@ select {
   </a>
 </div>
 
+<div class="status-filter-area">
+  <select id="statusFilter" onchange="renderList()">
+    <option value="all">全て</option>
+    <option value="opened">開放済みのみ</option>
+    <option value="full">全開放のみ</option>
+    <option value="none">未開放のみ</option>
+  </select>
+
+<button
+  id="fullIncludeResistanceButton"
+  onclick="toggleFullIncludeResistance()"
+  style="display:none;"
+>
+  耐性以外を含む
+</button>
+</div>
+
 <div id="npSummary" class="np-summary"></div>
 
 <div class="count" id="countText"></div>
@@ -591,14 +649,19 @@ let filteredCharacters = [];
 let useShortTalentName = true;
 let starFilterOnly = false;
 let superTalentOnly = false;
+let fullExcludeResistance = false;
 
 fetch("talents.json")
   .then(res => res.json())
   .then(data => {
-    characters = data;
-    setupRarityFilter();
-    renderList();
-  })
+  characters = data;
+  setupRarityFilter();
+
+  // 既存のキャラ★から未MAX本能へ★を自動付与
+  syncTalentStarsFromCharacterStars();
+
+  renderList();
+})
   .catch(err => {
     document.getElementById("list").innerHTML =
       "<p class='empty'>talents.json を読み込めませんでした。</p>";
@@ -652,6 +715,7 @@ const talentSearch = normalizeText(
 );
 
 const rarity = document.getElementById("rarityFilter").value;
+const statusFilter = document.getElementById("statusFilter").value;
 
   list.innerHTML = "";
 
@@ -670,6 +734,33 @@ const rarity = document.getElementById("rarityFilter").value;
   }
 
   if (rarity && char["レアリティ"] !== rarity) {
+    return false;
+  }
+
+  const unlockStatus = getCharacterUnlockStatus(char);
+
+  if (statusFilter === "opened" && !unlockStatus.isOpened) {
+    return false;
+  }
+
+  if (statusFilter === "full") {
+
+    if (fullExcludeResistance) {
+
+      if (!isCharacterFullWithoutResistance(char)) {
+        return false;
+      }
+
+    } else {
+
+      if (!unlockStatus.isFull) {
+        return false;
+      }
+
+    }
+  }
+
+  if (statusFilter === "none" && !unlockStatus.isNone) {
     return false;
   }
 
@@ -980,59 +1071,37 @@ function getUsedNpByLevel(char, talent, level) {
 }
 
   function getRemainingNpForStarredCharacters(targetCharacters) {
-
   let totalNp = 0;
   let nonResistanceNp = 0;
 
   const unlocked = loadUnlockedTalents();
+  const starTalents = loadStarTalents();
 
   targetCharacters.forEach(char => {
-
-    // 星なしは除外
-    if (!isCharacterStarred(char)) {
-      return;
-    }
+    if (!isCharacterStarred(char)) return;
 
     ["本能", "超本能"].forEach(title => {
-
       const talents = char[title] || [];
 
       talents.forEach((talent, index) => {
+        const key = makeTalentKey(char, title, index);
 
-        const key =
-          makeTalentKey(char, title, index);
+        if (!starTalents[key]) return;
 
-        const savedLevel =
-          Number(unlocked[key] || 0);
+        const savedLevel = Number(unlocked[key] || 0);
+        const totalTalentNp = getTalentTotalNp(talent);
+        const usedNp = getUsedNpByLevel(char, talent, savedLevel);
+        const remainNp = totalTalentNp - usedNp;
 
-        const totalTalentNp =
-          getTalentTotalNp(talent);
-
-        const maxLevel =
-          getTalentMaxLevel(char, talent);
-
-        const usedNp =
-          getUsedNpByLevel(char, talent, savedLevel);
-
-        // 残りNP
-        const remainNp =
-          totalTalentNp - usedNp;
-
-        // 既にMAXなら除外
-        if (remainNp <= 0) {
-          return;
-        }
+        if (remainNp <= 0) return;
 
         totalNp += remainNp;
 
         if (!isResistanceTalent(talent["能力名"])) {
           nonResistanceNp += remainNp;
         }
-
       });
-
     });
-
   });
 
   return {
@@ -1211,6 +1280,11 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
     const key = char ? makeTalentKey(char, title, index) : "";
     const savedLevel = Number(unlocked[key] || 0);
 
+    const starTalents = loadStarTalents();
+    const charStarred = char ? isCharacterStarred(char) : false;
+    const isMax = char ? isTalentMax(char, t, savedLevel) : false;
+    const talentStarOn = !!starTalents[key];
+
     const maxLevel = char ? getTalentMaxLevel(char, t) : 0;
     const totalNp = getTalentTotalNp(t);
     const usedNp = char ? getUsedNpByLevel(char, t, savedLevel) : 0;
@@ -1288,6 +1362,20 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
 
         <div class="talent-controls">
           ${controlHtml}
+
+          ${
+            charStarred && !isMax
+              ? `
+                <button
+                  class="talent-star-button ${talentStarOn ? "talent-star-on" : ""}"
+                  data-talent-key="${escapeAttr(key)}"
+                  onclick="toggleTalentStar('${escapeAttr(key)}')"
+                >
+                  ${talentStarOn ? "★" : "☆"}
+                </button>
+              `
+            : ""
+          }
         </div>
       </div>
     `;
@@ -1591,6 +1679,23 @@ function setTalentLevel(key, level, element = null) {
 
   saveUnlockedTalents(data);
 
+  const starTalents = loadStarTalents();
+
+const targetBox = element?.closest(".talent");
+if (targetBox) {
+  const charId = targetBox.dataset.charId;
+  const title = targetBox.dataset.title;
+  const index = Number(targetBox.dataset.index);
+
+  const char = characters.find(c => String(c["ID"]) === String(charId));
+  const talent = char?.[title]?.[index];
+
+  if (char && talent && isTalentMax(char, talent, level)) {
+    delete starTalents[key];
+    saveStarTalents(starTalents);
+  }
+}
+
   if (element) {
     const box = element.closest(".talent");
     const select = box?.querySelector(".talent-level");
@@ -1632,6 +1737,41 @@ function setTalentLevel(key, level, element = null) {
         } else {
           npText.textContent = `NP:${totalNp}`;
         }
+
+        const starTalents = loadStarTalents();
+
+        if (isTalentMax(char, talent, level)) {
+          delete starTalents[key];
+          saveStarTalents(starTalents);
+
+          const starButton = box.querySelector(".talent-star-button");
+          if (starButton) {
+            starButton.remove();
+          }
+
+          updateCharacterStarByTalentStars(key);
+        } else {
+          if (isCharacterStarred(char)) {
+            starTalents[key] = true;
+            saveStarTalents(starTalents);
+
+            const controls = box.querySelector(".talent-controls");
+
+            if (controls && !box.querySelector(".talent-star-button")) {
+              controls.insertAdjacentHTML("beforeend", `
+                <button
+                  class="talent-star-button talent-star-on"
+                  data-talent-key="${escapeAttr(key)}"
+                  onclick="toggleTalentStar('${escapeAttr(key)}')"
+                >
+                  ★
+                </button>
+              `);
+            }
+
+            updateCharacterStarByTalentStars(key);
+          }
+        }
       }
     }
   }
@@ -1670,32 +1810,46 @@ function toggleCharacterStar(characterId) {
   const char = characters.find(c => String(c["ID"]) === String(characterId));
   if (!char) return;
 
-  const data = loadStarCharacters();
-  const key = makeCharacterStarKey(char);
+  const starChars = loadStarCharacters();
+  const starTalents = loadStarTalents();
+  const unlocked = loadUnlockedTalents();
 
-  if (data[key]) {
-    delete data[key];
+  const charKey = makeCharacterStarKey(char);
+  const willStar = !starChars[charKey];
+
+  if (willStar) {
+    starChars[charKey] = true;
+
+    ["本能", "超本能"].forEach(title => {
+      const talents = char[title] || [];
+
+      talents.forEach((talent, index) => {
+        const key = makeTalentKey(char, title, index);
+        const level = Number(unlocked[key] || 0);
+
+        if (!isTalentMax(char, talent, level)) {
+          starTalents[key] = true;
+        }
+      });
+    });
+
   } else {
-    data[key] = true;
+    delete starChars[charKey];
+
+    ["本能", "超本能"].forEach(title => {
+      const talents = char[title] || [];
+
+      talents.forEach((talent, index) => {
+        const key = makeTalentKey(char, title, index);
+        delete starTalents[key];
+      });
+    });
   }
 
-  saveStarCharacters(data);
+  saveStarCharacters(starChars);
+  saveStarTalents(starTalents);
 
-  const button = document.querySelector(
-    `.star-button[data-character-id="${CSS.escape(String(characterId))}"]`
-  );
-
-  if (button) {
-    const on = !!data[key];
-    button.classList.toggle("star-on", on);
-    button.textContent = on ? "★" : "☆";
-  }
-
-  updateNpSummary(getRarityFilteredCharacters());
-
-  if (starFilterOnly) {
-    renderList();
-  }
+  renderList();
 }
 
 function toggleStarFilter() {
@@ -2050,6 +2204,276 @@ function toggleStarFilter() {
   updateNpSummary(getRarityFilteredCharacters());
   updateUnlockAllButtons();
 }
+
+  // 本能ごとに星
+  function getTalentStarSaveKey() {
+  return `nyanko_talent_star_talents_${getCurrentAccountId()}`;
+}
+
+function loadStarTalents() {
+  try {
+    return JSON.parse(localStorage.getItem(getTalentStarSaveKey())) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveStarTalents(data) {
+  localStorage.setItem(getTalentStarSaveKey(), JSON.stringify(data));
+}
+
+  function isTalentMax(char, talent, level) {
+  const maxLevel = getTalentMaxLevel(char, talent);
+
+  if (maxLevel > 0) {
+    return level >= maxLevel;
+  }
+
+  return level > 0;
+}
+
+  function toggleTalentStar(key) {
+  const starTalents = loadStarTalents();
+
+  if (starTalents[key]) {
+    delete starTalents[key];
+  } else {
+    starTalents[key] = true;
+  }
+
+  saveStarTalents(starTalents);
+
+  // ボタン表示を即変更
+  const button = document.querySelector(
+    `.talent-star-button[data-talent-key="${CSS.escape(key)}"]`
+  );
+
+  if (button) {
+    const on = !!starTalents[key];
+    button.classList.toggle("talent-star-on", on);
+    button.textContent = on ? "★" : "☆";
+  }
+
+  updateCharacterStarByTalentStars(key);
+  updateNpSummary(getRarityFilteredCharacters());
+}
+
+  function updateCharacterStarByTalentStars(key) {
+  const parts = key.split("_");
+  const charId = parts[0];
+
+  const char = characters.find(c => String(c["ID"]) === String(charId));
+  if (!char) return;
+
+  const starTalents = loadStarTalents();
+  const starChars = loadStarCharacters();
+
+  const hasAnyTalentStar = ["本能", "超本能"].some(title => {
+    const talents = char[title] || [];
+
+    return talents.some((talent, index) => {
+      const talentKey = makeTalentKey(char, title, index);
+      return !!starTalents[talentKey];
+    });
+  });
+
+  const charKey = makeCharacterStarKey(char);
+
+  if (hasAnyTalentStar) {
+    starChars[charKey] = true;
+  } else {
+    delete starChars[charKey];
+  }
+
+  saveStarCharacters(starChars);
+
+  const charStarButton = document.querySelector(
+    `.star-button[data-character-id="${CSS.escape(String(char["ID"]))}"]`
+  );
+
+  if (charStarButton) {
+    charStarButton.classList.toggle("star-on", hasAnyTalentStar);
+    charStarButton.textContent = hasAnyTalentStar ? "★" : "☆";
+  }
+}
+
+  function syncTalentStarsFromCharacterStars() {
+  const starChars = loadStarCharacters();
+  const starTalents = loadStarTalents();
+  const unlocked = loadUnlockedTalents();
+
+  let changed = false;
+
+  characters.forEach(char => {
+    if (!isCharacterStarred(char)) return;
+
+    ["本能", "超本能"].forEach(title => {
+      const talents = char[title] || [];
+
+      talents.forEach((talent, index) => {
+        const key = makeTalentKey(char, title, index);
+        const level = Number(unlocked[key] || 0);
+
+        // MAX済みなら本能★は付けない
+        if (isTalentMax(char, talent, level)) {
+          if (starTalents[key]) {
+            delete starTalents[key];
+            changed = true;
+          }
+          return;
+        }
+
+        // 未MAXなら本能★を付ける
+        if (!starTalents[key]) {
+          starTalents[key] = true;
+          changed = true;
+        }
+      });
+    });
+  });
+
+  if (changed) {
+    saveStarTalents(starTalents);
+  }
+}
+
+  // 開放フィルター
+  function getCharacterUnlockStatus(char) {
+  const unlocked = loadUnlockedTalents();
+
+  let totalCount = 0;
+  let openedCount = 0;
+  let fullCount = 0;
+
+  ["本能", "超本能"].forEach(title => {
+    const talents = char[title] || [];
+
+    talents.forEach((talent, index) => {
+      totalCount++;
+
+      const key = makeTalentKey(char, title, index);
+      const level = Number(unlocked[key] || 0);
+
+      if (level > 0) {
+        openedCount++;
+      }
+
+      if (isTalentMax(char, talent, level)) {
+        fullCount++;
+      }
+    });
+  });
+
+  return {
+    totalCount,
+    openedCount,
+    fullCount,
+    isOpened: openedCount > 0,
+    isFull: totalCount > 0 && fullCount === totalCount,
+    isNone: openedCount === 0
+  };
+}
+
+  function toggleFullIncludeResistance() {
+
+  fullExcludeResistance =
+    !fullExcludeResistance;
+
+  const button =
+    document.getElementById(
+      "fullIncludeResistanceButton"
+    );
+
+  button.textContent =
+    fullExcludeResistance
+      ? "耐性以外を含む"
+      : "耐性以外を含む";
+
+  button.classList.toggle(
+    "active",
+    fullExcludeResistance
+  );
+
+  renderList();
+}
+
+  document.getElementById("statusFilter")
+  .addEventListener("change", () => {
+
+    const status =
+      document.getElementById("statusFilter").value;
+
+    const button =
+      document.getElementById(
+        "fullIncludeResistanceButton"
+      );
+
+    button.style.display =
+      status === "full"
+        ? ""
+        : "none";
+  });
+
+  function isCharacterFullWithoutResistance(char) {
+
+  const unlocked =
+    loadUnlockedTalents();
+
+  let hasNonResistance = false;
+
+  const talents = [
+    ...(char["本能"] || []).map(t => ({
+      title: "本能",
+      talent: t
+    })),
+
+    ...(char["超本能"] || []).map(t => ({
+      title: "超本能",
+      talent: t
+    }))
+  ];
+
+  // 耐性以外が全MAX
+  const nonResistanceFull =
+    talents
+      .filter(({ talent }) => {
+        const isResist =
+          isResistanceTalent(
+            talent["能力名"]
+          );
+
+        if (!isResist) {
+          hasNonResistance = true;
+        }
+
+        return !isResist;
+      })
+      .every(({ title, talent }) => {
+
+        const talents =
+          char[title] || [];
+
+        const index =
+          talents.indexOf(talent);
+
+        const key =
+          makeTalentKey(char, title, index);
+
+        const level =
+          Number(unlocked[key] || 0);
+
+        return isTalentMax(
+          char,
+          talent,
+          level
+        );
+      });
+
+  if (!hasNonResistance) {
+    return false;
+  }
+    return nonResistanceFull;
+  }
 </script>
 
 <button id="topButton" onclick="scrollToTop()">↑</button>
