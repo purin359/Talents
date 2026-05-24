@@ -657,9 +657,6 @@ fetch("talents.json")
   characters = data;
   setupRarityFilter();
 
-  // 既存のキャラ★から未MAX本能へ★を自動付与
-  syncTalentStarsFromCharacterStars();
-
   renderList();
 })
   .catch(err => {
@@ -2243,7 +2240,6 @@ function saveStarTalents(data) {
 
   saveStarTalents(starTalents);
 
-  // ボタン表示を即変更
   const button = document.querySelector(
     `.talent-star-button[data-talent-key="${CSS.escape(key)}"]`
   );
@@ -2257,7 +2253,7 @@ function saveStarTalents(data) {
   updateCharacterStarByTalentStars(key);
   updateNpSummary(getRarityFilteredCharacters());
 }
-
+  
   function updateCharacterStarByTalentStars(key) {
   const parts = key.split("_");
   const charId = parts[0];
