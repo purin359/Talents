@@ -1659,6 +1659,21 @@ if (targetBox) {
         } else {
           npText.textContent = `NP:${totalNp}`;
         }
+
+        // MAXになったら本能ボックスの★を外して非表示
+        if (isTalentMax(char, talent, level)) {
+          const starTalents = loadStarTalents();
+
+          delete starTalents[key];
+          saveStarTalents(starTalents);
+
+          const starButton = box.querySelector(".talent-star-button");
+          if (starButton) {
+            starButton.remove();
+          }
+
+          updateCharacterStarByTalentStars(key);
+        }
       }
     }
   }
