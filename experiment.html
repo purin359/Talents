@@ -549,6 +549,25 @@ select {
   font-size: 15px;
   padding: 8px 10px;
 }
+
+  #fullIncludeResistanceButton {
+  margin-left: 8px;
+
+  font-size: 14px;
+  padding: 8px 10px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #666;
+  color: white;
+
+  cursor: pointer;
+}
+
+#fullIncludeResistanceButton.active {
+  background: #2196F3;
+}
 </style>
 </head>
 
@@ -608,6 +627,14 @@ select {
     <option value="full">全開放のみ</option>
     <option value="none">未開放のみ</option>
   </select>
+
+<button
+  id="fullIncludeResistanceButton"
+  onclick="toggleFullIncludeResistance()"
+  style="display:none;"
+>
+  耐性以外を含む
+</button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -622,6 +649,7 @@ let filteredCharacters = [];
 let useShortTalentName = true;
 let starFilterOnly = false;
 let superTalentOnly = false;
+let fullExcludeResistance = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -715,8 +743,21 @@ const statusFilter = document.getElementById("statusFilter").value;
     return false;
   }
 
-  if (statusFilter === "full" && !unlockStatus.isFull) {
-    return false;
+  if (statusFilter === "full") {
+
+    if (fullExcludeResistance) {
+
+      if (!isCharacterFullWithoutResistance(char)) {
+        return false;
+      }
+
+    } else {
+
+      if (!unlockStatus.isFull) {
+        return false;
+      }
+
+    }
   }
 
   if (statusFilter === "none" && !unlockStatus.isNone) {
@@ -2331,6 +2372,140 @@ function saveStarTalents(data) {
     isFull: totalCount > 0 && fullCount === totalCount,
     isNone: openedCount === 0
   };
+}
+
+  function toggleFullIncludeResistance() {
+
+  fullExcludeResistance =
+    !fullExcludeResistance;
+
+  const button =
+    document.getElementById(
+      "fullIncludeResistanceButton"
+    );
+
+  button.textContent =
+    fullExcludeResistance
+      ? "耐性以外を含む"
+      : "耐性以外を含む";
+
+  button.classList.toggle(
+    "active",
+    fullExcludeResistance
+  );
+
+  renderList();
+}
+
+  document.getElementById("statusFilter")
+  .addEventListener("change", () => {
+
+    const status =
+      document.getElementById("statusFilter").value;
+
+    const button =
+      document.getElementById(
+        "fullIncludeResistanceButton"
+      );
+
+    button.style.display =
+      status === "full"
+        ? ""
+        : "none";
+  });
+
+  function isCharacterFullWithoutResistance(char) {
+
+  const unlocked =
+    loadUnlockedTalents();
+
+  let hasNonResistance = false;
+
+  const talents = [
+    ...(char["本能"] || []).map(t => ({
+      title: "本能",
+      talent: t
+    })),
+
+    ...(char["超本能"] || []).map(t => ({
+      title: "超本能",
+      talent: t
+    }))
+  ];
+
+  // 耐性以外が全MAX
+  const nonResistanceFull =
+    talents
+      .filter(({ talent }) => {
+        const isResist =
+          isResistanceTalent(
+            talent["能力名"]
+          );
+
+        if (!isResist) {
+          hasNonResistance = true;
+        }
+
+        return !isResist;
+      })
+      .every(({ title, talent }) => {
+
+        const talents =
+          char[title] || [];
+
+        const index =
+          talents.indexOf(talent);
+
+        const key =
+          makeTalentKey(char, title, index);
+
+        const level =
+          Number(unlocked[key] || 0);
+
+        return isTalentMax(
+          char,
+          talent,
+          level
+        );
+      });
+
+  if (!hasNonResistance) {
+    return false;
+  }
+
+  // 耐性本能が1つでも未MAX
+  const hasResistanceUnopened =
+    talents
+      .filter(({ talent }) =>
+        isResistanceTalent(
+          talent["能力名"]
+        )
+      )
+      .some(({ title, talent }) => {
+
+        const talents =
+          char[title] || [];
+
+        const index =
+          talents.indexOf(talent);
+
+        const key =
+          makeTalentKey(char, title, index);
+
+        const level =
+          Number(unlocked[key] || 0);
+
+        return !isTalentMax(
+          char,
+          talent,
+          level
+        );
+      });
+
+  return (
+    nonResistanceFull &&
+    hasResistanceUnopened
+  );
 }
 </script>
 
