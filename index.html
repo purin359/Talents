@@ -2802,6 +2802,16 @@ superVersionButton.style.display =
   )
     ? ""
     : "none";
+
+  const superButton =
+    document.getElementById(
+      "superVersionSortButton"
+    );
+
+  superButton.classList.toggle(
+    "normal-sort",
+    !superVersionSortMode
+  );
 }
 
   function toggleSuperVersionSort() {
@@ -2822,6 +2832,11 @@ superVersionButton.style.display =
   button.classList.toggle(
     "active",
     superVersionSortMode
+  );
+
+  button.classList.toggle(
+    "normal-sort",
+    !superVersionSortMode
   );
 
   renderList();
