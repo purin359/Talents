@@ -663,6 +663,25 @@ select {
 #versionSortButton.version-sort-on {
   background: #2196F3;
 }
+
+  #superVersionSortButton {
+  font-size: 16px;
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #666;
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.15s;
+}
+
+#superVersionSortButton.active {
+  background: #ff9800;
+}
 </style>
 </head>
 
@@ -741,6 +760,14 @@ select {
   >
     Verソート
   </button>
+
+  <button
+    id="superVersionSortButton"
+    onclick="toggleSuperVersionSort()"
+    style="display:none;"
+  >
+    本能でソート
+  </button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -758,6 +785,7 @@ let superTalentOnly = false;
 let fullExcludeResistance = false;
 let newFilterOnly = false;
 let versionSortMode = false;
+let superVersionSortMode = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -911,11 +939,19 @@ const statusFilter = document.getElementById("statusFilter").value;
 
     filteredCharacters.sort((a, b) => {
 
+      const key =
+         (
+          superTalentOnly &&
+          superVersionSortMode
+        )
+          ? "超本能追加Ver"
+          : "本能追加Ver";
+
       const verA =
-        a["本能追加Ver"] || "0";
+        a[key] || "0";
 
       const verB =
-        b["本能追加Ver"] || "0";
+        b[key] || "0";
 
       return compareVersion(verA, verB);
     });
@@ -2050,6 +2086,19 @@ function toggleStarFilter() {
       : "超本能のみ";
 
   renderList();
+
+    const superVersionButton =
+  document.getElementById(
+    "superVersionSortButton"
+  );
+
+superVersionButton.style.display =
+  (
+    superTalentOnly &&
+    versionSortMode
+  )
+    ? ""
+    : "none";
 }
 
   function updateTalentBoxColor(box, level, maxLevel) {
@@ -2707,6 +2756,42 @@ function saveStarTalents(data) {
   button.classList.toggle(
     "version-sort-on",
     versionSortMode
+  );
+
+  renderList();
+
+    const superVersionButton =
+  document.getElementById(
+    "superVersionSortButton"
+  );
+
+superVersionButton.style.display =
+  (
+    superTalentOnly &&
+    versionSortMode
+  )
+    ? ""
+    : "none";
+}
+
+  function toggleSuperVersionSort() {
+
+  superVersionSortMode =
+    !superVersionSortMode;
+
+  const button =
+    document.getElementById(
+      "superVersionSortButton"
+    );
+
+  button.textContent =
+    superVersionSortMode
+      ? "超本能でソート"
+      : "本能でソート";
+
+  button.classList.toggle(
+    "active",
+    superVersionSortMode
   );
 
   renderList();
