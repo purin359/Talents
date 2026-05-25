@@ -568,6 +568,45 @@ select {
 #fullIncludeResistanceButton.active {
   background: #2196F3;
 }
+
+  .new-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: 6px;
+
+  padding: 3px 8px;
+
+  border-radius: 8px;
+
+  background: #ff3b30;
+  color: white;
+
+  font-size: 13px;
+  font-weight: bold;
+
+  line-height: 1;
+}
+
+  #newFilterButton {
+  font-size: 16px;
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #666;
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.15s;
+}
+
+#newFilterButton.new-filter-on {
+  background: #ff3b30;
+}
 </style>
 </head>
 
@@ -575,7 +614,7 @@ select {
 
 <div class="top-header">
 
-  <h1>本能一覧　Ver.15.3.0対応</h1>
+  <h1>本能一覧　Ver.15.4.0対応</h1>
 
   <div class="account-area">
     <select id="accountSelect" onchange="changeAccount()"></select>
@@ -635,6 +674,10 @@ select {
 >
   耐性以外を含む
 </button>
+
+<button id="newFilterButton" onclick="toggleNewFilter()">
+  NEWのみ
+</button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -650,6 +693,7 @@ let useShortTalentName = true;
 let starFilterOnly = false;
 let superTalentOnly = false;
 let fullExcludeResistance = false;
+let newFilterOnly = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -727,6 +771,13 @@ const statusFilter = document.getElementById("statusFilter").value;
   }
 
   if (starFilterOnly && !isCharacterStarred(char)) {
+    return false;
+  }
+
+  if (
+    newFilterOnly &&
+    !isNewCharacter(char)
+  ) {
     return false;
   }
 
@@ -828,6 +879,12 @@ const statusFilter = document.getElementById("statusFilter").value;
 
             <div class="name">
               ${escapeHtml(char["キャラ名"])}
+
+              ${
+                isNewCharacter(char)
+                  ? `<span class="new-badge">NEW</span>`
+                  : ""
+              }
             </div>
 
             <div class="unlock-buttons">
@@ -2470,9 +2527,35 @@ function saveStarTalents(data) {
   }
     return nonResistanceFull;
   }
+
+  // NEW
+  const NEW_CHARACTERS = [
+    "バッドブラスター・サキ",
+    "超奇襲怪光エンヴァンズ",
+    "セイバーオルタCC",
+    "黒桜CC"
+  ];
+  
+  function isNewCharacter(char) {
+  return NEW_CHARACTERS.includes(char["キャラ名"]);
+}
+
+  function toggleNewFilter() {
+
+  newFilterOnly = !newFilterOnly;
+
+  const button =
+    document.getElementById("newFilterButton");
+
+  button.classList.toggle(
+    "new-filter-on",
+    newFilterOnly
+  );
+
+  renderList();
+}
 </script>
 
 <button id="topButton" onclick="scrollToTop()">↑</button>
 </body>
 </html>
-
