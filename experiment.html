@@ -2691,15 +2691,41 @@ function saveStarTalents(data) {
   }
 
   // NEW
-  const NEW_CHARACTERS = [
-    "バッドブラスター・サキ",
-    "超奇襲怪光エンヴァンズ",
-    "セイバーオルタCC",
-    "黒桜CC"
-  ];
-  
+  function getLatestVersion() {
+
+  let latest = "0";
+
+  characters.forEach(char => {
+
+    [
+      char["本能追加Ver"],
+      char["魂攻撃追加Ver"],
+      char["超本能追加Ver"]
+    ].forEach(ver => {
+
+      if (!ver) return;
+
+      if (
+        compareVersion(ver, latest) > 0
+      ) {
+        latest = ver;
+      }
+    });
+  });
+
+  return latest;
+}
+
   function isNewCharacter(char) {
-  return NEW_CHARACTERS.includes(char["キャラ名"]);
+
+  const latest =
+    getLatestVersion();
+
+  return (
+    char["本能追加Ver"] === latest ||
+    char["魂攻撃追加Ver"] === latest ||
+    char["超本能追加Ver"] === latest
+  );
 }
 
   function toggleNewFilter() {
