@@ -640,6 +640,10 @@ select {
 .version-badge.super-ver {
   background: #ff9800;
 }
+
+.version-badge.soul-ver {
+  background: #8e24aa;
+}
   
   #versionSortButton {
   font-size: 16px;
@@ -939,6 +943,17 @@ const statusFilter = document.getElementById("statusFilter").value;
           ? `
             <div class="version-badge">
               本能追加Ver:${escapeHtml(char["本能追加Ver"])}
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        char["魂攻撃追加Ver"]
+          ? `
+            <div class="version-badge soul-ver">
+              魂攻撃追加Ver:
+              ${escapeHtml(char["魂攻撃追加Ver"])}
             </div>
           `
           : ""
