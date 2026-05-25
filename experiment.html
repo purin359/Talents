@@ -607,6 +607,55 @@ select {
 #newFilterButton.new-filter-on {
   background: #ff3b30;
 }
+
+  .version-info {
+  position: absolute;
+
+  top: 8px;
+  right: 42px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  font-size: 11px;
+  line-height: 1.15;
+
+  color: #666;
+
+  z-index: 2;
+}
+
+.version-badge {
+  padding: 2px 6px;
+
+  border-radius: 7px;
+
+  background: #f0f0f0;
+
+  margin-bottom: 3px;
+
+  white-space: nowrap;
+}
+
+  #versionSortButton {
+  font-size: 16px;
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #666;
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.15s;
+}
+
+#versionSortButton.version-sort-on {
+  background: #2196F3;
+}
 </style>
 </head>
 
@@ -678,6 +727,13 @@ select {
 <button id="newFilterButton" onclick="toggleNewFilter()">
   NEWのみ
 </button>
+
+  <button
+    id="versionSortButton"
+    onclick="toggleVersionSort()"
+  >
+    Verソート
+  </button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -694,6 +750,7 @@ let starFilterOnly = false;
 let superTalentOnly = false;
 let fullExcludeResistance = false;
 let newFilterOnly = false;
+let versionSortMode = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -843,6 +900,20 @@ const statusFilter = document.getElementById("statusFilter").value;
   return true;
 });
 
+  if (versionSortMode) {
+
+    filteredCharacters.sort((a, b) => {
+
+      const verA =
+        a["本能追加Ver"] || "0";
+
+      const verB =
+        b["本能追加Ver"] || "0";
+
+      return compareVersion(verA, verB);
+    });
+  }
+
   updateNpSummary(getRarityFilteredCharacters());
 
   document.getElementById("countText").textContent =
@@ -858,6 +929,29 @@ const statusFilter = document.getElementById("statusFilter").value;
     card.className = "card";
 
     card.innerHTML = `
+    <div class="version-info">
+
+      ${
+        char["本能追加Ver"]
+          ? `
+            <div class="version-badge">
+              本能追加Ver:${escapeHtml(char["本能追加Ver"])}
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        char["超本能追加Ver"]
+          ? `
+            <div class="version-badge">
+              超本能追加Ver:${escapeHtml(char["超本能追加Ver"])}
+            </div>
+          `
+          : ""
+      }
+
+    </div>
     <button
       class="star-button ${isCharacterStarred(char) ? "star-on" : ""}"
       data-character-id="${escapeAttr(char["ID"])}"
@@ -1489,6 +1583,7 @@ function makeLevelOptions(maxLevel, savedLevel) {
     ["毒撃ダメージ", "毒撃"],
     ["波動ダメージ", "波動"],
     ["烈波ダメージ", "烈波"],
+    ["爆波ダメージ", "爆波"],
 
     ["波動攻撃", "波動"],
     ["烈波攻撃", "烈波"],
@@ -2554,9 +2649,52 @@ function saveStarTalents(data) {
 
   renderList();
 }
+
+  // Ver
+  function compareVersion(a, b) {
+
+  const pa = String(a || "0")
+    .split(".")
+    .map(Number);
+
+  const pb = String(b || "0")
+    .split(".")
+    .map(Number);
+
+  const length =
+    Math.max(pa.length, pb.length);
+
+  for (let i = 0; i < length; i++) {
+
+    const va = pa[i] || 0;
+    const vb = pb[i] || 0;
+
+    if (va !== vb) {
+      return va - vb;
+    }
+  }
+
+  return 0;
+}
+
+  function toggleVersionSort() {
+
+  versionSortMode = !versionSortMode;
+
+  const button =
+    document.getElementById(
+      "versionSortButton"
+    );
+
+  button.classList.toggle(
+    "version-sort-on",
+    versionSortMode
+  );
+
+  renderList();
+}
 </script>
 
 <button id="topButton" onclick="scrollToTop()">↑</button>
 </body>
 </html>
-
