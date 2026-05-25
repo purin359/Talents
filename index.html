@@ -607,6 +607,81 @@ select {
 #newFilterButton.new-filter-on {
   background: #ff3b30;
 }
+
+  .version-info {
+  position: absolute;
+  top: 8px;
+  right: 56px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: bold;
+
+  z-index: 2;
+}
+
+.version-badge {
+  padding: 4px 9px;
+  border-radius: 8px;
+
+  background: #6495ED;
+  color: white;
+
+  box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+
+  white-space: nowrap;
+}
+
+.version-badge.super-ver {
+  background: #ff9800;
+}
+
+.version-badge.soul-ver {
+  background: #717375;
+}
+  
+  #versionSortButton {
+  font-size: 16px;
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #666;
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.15s;
+}
+
+#versionSortButton.version-sort-on {
+  background: #2196F3;
+}
+
+  #superVersionSortButton {
+  font-size: 16px;
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #666;
+  color: white;
+
+  cursor: pointer;
+
+  transition: 0.15s;
+}
+
+#superVersionSortButton.active {
+  background: #ff9800;
+}
 </style>
 </head>
 
@@ -678,6 +753,21 @@ select {
 <button id="newFilterButton" onclick="toggleNewFilter()">
   NEWのみ
 </button>
+
+  <button
+    id="versionSortButton"
+    onclick="toggleVersionSort()"
+  >
+    Verソート
+  </button>
+
+  <button
+    id="superVersionSortButton"
+    onclick="toggleSuperVersionSort()"
+    style="display:none;"
+  >
+    本能でソート
+  </button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -694,6 +784,8 @@ let starFilterOnly = false;
 let superTalentOnly = false;
 let fullExcludeResistance = false;
 let newFilterOnly = false;
+let versionSortMode = false;
+let superVersionSortMode = false;
 
 fetch("talents.json")
   .then(res => res.json())
@@ -843,6 +935,28 @@ const statusFilter = document.getElementById("statusFilter").value;
   return true;
 });
 
+  if (versionSortMode) {
+
+    filteredCharacters.sort((a, b) => {
+
+      const key =
+         (
+          superTalentOnly &&
+          superVersionSortMode
+        )
+          ? "超本能追加Ver"
+          : "本能追加Ver";
+
+      const verA =
+        a[key] || "0";
+
+      const verB =
+        b[key] || "0";
+
+      return compareVersion(verA, verB);
+    });
+  }
+
   updateNpSummary(getRarityFilteredCharacters());
 
   document.getElementById("countText").textContent =
@@ -858,6 +972,40 @@ const statusFilter = document.getElementById("statusFilter").value;
     card.className = "card";
 
     card.innerHTML = `
+    <div class="version-info">
+
+      ${
+        char["本能追加Ver"]
+          ? `
+            <div class="version-badge">
+              本能追加Ver:${escapeHtml(char["本能追加Ver"])}
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        char["魂攻撃追加Ver"]
+          ? `
+            <div class="version-badge soul-ver">
+              魂攻撃追加Ver:
+              ${escapeHtml(char["魂攻撃追加Ver"])}
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        char["超本能追加Ver"]
+          ? `
+            <div class="version-badge super-ver">
+              超本能追加Ver:${escapeHtml(char["超本能追加Ver"])}
+            </div>
+          `
+          : ""
+      }
+
+    </div>
     <button
       class="star-button ${isCharacterStarred(char) ? "star-on" : ""}"
       data-character-id="${escapeAttr(char["ID"])}"
@@ -1938,6 +2086,19 @@ function toggleStarFilter() {
       : "超本能のみ";
 
   renderList();
+
+    const superVersionButton =
+  document.getElementById(
+    "superVersionSortButton"
+  );
+
+superVersionButton.style.display =
+  (
+    superTalentOnly &&
+    versionSortMode
+  )
+    ? ""
+    : "none";
 }
 
   function updateTalentBoxColor(box, level, maxLevel) {
@@ -2530,15 +2691,41 @@ function saveStarTalents(data) {
   }
 
   // NEW
-  const NEW_CHARACTERS = [
-    "バッドブラスター・サキ",
-    "超奇襲怪光エンヴァンズ",
-    "セイバーオルタCC",
-    "黒桜CC"
-  ];
-  
+  function getLatestVersion() {
+
+  let latest = "0";
+
+  characters.forEach(char => {
+
+    [
+      char["本能追加Ver"],
+      char["魂攻撃追加Ver"],
+      char["超本能追加Ver"]
+    ].forEach(ver => {
+
+      if (!ver) return;
+
+      if (
+        compareVersion(ver, latest) > 0
+      ) {
+        latest = ver;
+      }
+    });
+  });
+
+  return latest;
+}
+
   function isNewCharacter(char) {
-  return NEW_CHARACTERS.includes(char["キャラ名"]);
+
+  const latest =
+    getLatestVersion();
+
+  return (
+    char["本能追加Ver"] === latest ||
+    char["魂攻撃追加Ver"] === latest ||
+    char["超本能追加Ver"] === latest
+  );
 }
 
   function toggleNewFilter() {
@@ -2551,6 +2738,86 @@ function saveStarTalents(data) {
   button.classList.toggle(
     "new-filter-on",
     newFilterOnly
+  );
+
+  renderList();
+}
+
+  // Ver
+  function compareVersion(a, b) {
+
+  const pa = String(a || "0")
+    .split(".")
+    .map(Number);
+
+  const pb = String(b || "0")
+    .split(".")
+    .map(Number);
+
+  const length =
+    Math.max(pa.length, pb.length);
+
+  for (let i = 0; i < length; i++) {
+
+    const va = pa[i] || 0;
+    const vb = pb[i] || 0;
+
+    if (va !== vb) {
+      return va - vb;
+    }
+  }
+
+  return 0;
+}
+
+  function toggleVersionSort() {
+
+  versionSortMode = !versionSortMode;
+
+  const button =
+    document.getElementById(
+      "versionSortButton"
+    );
+
+  button.classList.toggle(
+    "version-sort-on",
+    versionSortMode
+  );
+
+  renderList();
+
+    const superVersionButton =
+  document.getElementById(
+    "superVersionSortButton"
+  );
+
+superVersionButton.style.display =
+  (
+    superTalentOnly &&
+    versionSortMode
+  )
+    ? ""
+    : "none";
+}
+
+  function toggleSuperVersionSort() {
+
+  superVersionSortMode =
+    !superVersionSortMode;
+
+  const button =
+    document.getElementById(
+      "superVersionSortButton"
+    );
+
+  button.textContent =
+    superVersionSortMode
+      ? "超本能でソート"
+      : "本能でソート";
+
+  button.classList.toggle(
+    "active",
+    superVersionSortMode
   );
 
   renderList();
