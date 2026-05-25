@@ -610,34 +610,35 @@ select {
 
   .version-info {
   position: absolute;
-
   top: 8px;
   right: 42px;
 
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  gap: 4px;
 
   font-size: 13px;
   line-height: 1.2;
-
-  color: #666;
+  font-weight: bold;
 
   z-index: 2;
 }
 
 .version-badge {
-  padding: 3px 8px;
-
+  padding: 4px 9px;
   border-radius: 8px;
 
-  background: #f0f0f0;
+  background: #263238;
+  color: white;
 
-  margin-bottom: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.18);
 
   white-space: nowrap;
+}
 
-  font-weight: bold;
+.version-badge.super-ver {
+  background: #ef6c00;
 }
   
   #versionSortButton {
@@ -946,7 +947,7 @@ const statusFilter = document.getElementById("statusFilter").value;
       ${
         char["超本能追加Ver"]
           ? `
-            <div class="version-badge">
+            <div class="version-badge super-ver">
               超本能追加Ver:${escapeHtml(char["超本能追加Ver"])}
             </div>
           `
