@@ -2868,21 +2868,19 @@ superVersionButton.style.display =
 // 共有リンク
 function copyShareLink() {
   const data = {
-    unlocked: loadUnlockedTalents(),
-    starCharacters: loadStarCharacters(),
-    starTalents: loadStarTalents()
+    unlocked: loadUnlockedTalents()
   };
 
   const encoded =
-  LZString.compressToEncodedURIComponent(
-    JSON.stringify(data)
-  );
+    LZString.compressToEncodedURIComponent(
+      JSON.stringify(data)
+    );
 
-const url =
-  location.origin +
-  location.pathname +
-  "?data=" +
-  encoded;
+  const url =
+    location.origin +
+    location.pathname +
+    "?data=" +
+    encoded;
 
   navigator.clipboard.writeText(url);
 
