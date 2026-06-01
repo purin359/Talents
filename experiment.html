@@ -800,6 +800,10 @@ let fullExcludeResistance = false;
 let newFilterOnly = false;
 let versionSortMode = false;
 let superVersionSortMode = false;
+let sharedDataMode = false;
+let sharedUnlockedData = null;
+let sharedStarCharactersData = null;
+let sharedStarTalentsData = null;
 
   loadSharedDataFromUrl();
 
@@ -2862,11 +2866,6 @@ superVersionButton.style.display =
 }
 
 // 共有リンク
-let sharedDataMode = false;
-let sharedUnlockedData = null;
-let sharedStarCharactersData = null;
-let sharedStarTalentsData = null;
-
 function copyShareLink() {
   const data = {
     unlocked: loadUnlockedTalents(),
