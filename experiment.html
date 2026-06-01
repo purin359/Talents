@@ -692,6 +692,7 @@ select {
   pointer-events: none;
 }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 </head>
 
 <body>
@@ -2873,15 +2874,16 @@ function copyShareLink() {
     starTalents: loadStarTalents()
   };
 
-  const encoded = btoa(
-    encodeURIComponent(JSON.stringify(data))
+  const encoded =
+  LZString.compressToEncodedURIComponent(
+    JSON.stringify(data)
   );
 
-  const url =
-    location.origin +
-    location.pathname +
-    "?data=" +
-    encoded;
+const url =
+  location.origin +
+  location.pathname +
+  "?data=" +
+  encoded;
 
   navigator.clipboard.writeText(url);
 
@@ -2896,7 +2898,10 @@ function copyShareLink() {
 
   try {
     const data = JSON.parse(
-      decodeURIComponent(atob(dataText))
+      LZString.decompressFromEncodedURIComponent(
+        dataText
+      )
+    );
     );
 
     sharedDataMode = true;
