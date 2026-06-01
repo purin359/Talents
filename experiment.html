@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>本能一覧</title>
+<title>本能一覧(実験用)</title>
 
 <style>
 body {
@@ -629,7 +629,7 @@ select {
   padding: 4px 9px;
   border-radius: 8px;
 
-  background: #6495ED;
+  background: #2196F3;
   color: white;
 
   box-shadow: 0 2px 5px rgba(0,0,0,0.18);
@@ -681,6 +681,15 @@ select {
 
 #superVersionSortButton.active {
   background: #ff9800;
+}
+
+#superVersionSortButton.normal-sort {
+  background: #2196F3;
+}
+
+.shared-disabled {
+  opacity: 0.45;
+  pointer-events: none;
 }
 </style>
 </head>
@@ -768,6 +777,10 @@ select {
   >
     本能でソート
   </button>
+
+  <button onclick="copyShareLink()">
+    共有リンク作成
+  </button>
 </div>
 
 <div id="npSummary" class="np-summary"></div>
@@ -786,6 +799,8 @@ let fullExcludeResistance = false;
 let newFilterOnly = false;
 let versionSortMode = false;
 let superVersionSortMode = false;
+
+  loadSharedDataFromUrl();
 
 fetch("talents.json")
   .then(res => res.json())
@@ -1114,6 +1129,7 @@ const statusFilter = document.getElementById("statusFilter").value;
 
     list.appendChild(card);
   });
+  disableControlsInSharedMode();
 }
 
   function sumNpText(npText) {
@@ -1853,7 +1869,9 @@ function renameAccount() {
   renderAccountSelect();
 }
 
-  function loadUnlockedTalents() {
+function loadUnlockedTalents() {
+  if (sharedDataMode) return sharedUnlockedData || {};
+
   try {
     return JSON.parse(localStorage.getItem(getTalentSaveKey())) || {};
   } catch {
@@ -1989,6 +2007,8 @@ if (targetBox) {
 }
 
 function loadStarCharacters() {
+  if (sharedDataMode) return sharedStarCharactersData || {};
+
   try {
     return JSON.parse(localStorage.getItem(getStarSaveKey())) || {};
   } catch {
@@ -2427,6 +2447,8 @@ superVersionButton.style.display =
 }
 
 function loadStarTalents() {
+  if (sharedDataMode) return sharedStarTalentsData || {};
+
   try {
     return JSON.parse(localStorage.getItem(getTalentStarSaveKey())) || {};
   } catch {
@@ -2798,6 +2820,16 @@ superVersionButton.style.display =
   )
     ? ""
     : "none";
+
+  const superButton =
+    document.getElementById(
+      "superVersionSortButton"
+    );
+
+  superButton.classList.toggle(
+    "normal-sort",
+    !superVersionSortMode
+  );
 }
 
   function toggleSuperVersionSort() {
@@ -2820,7 +2852,80 @@ superVersionButton.style.display =
     superVersionSortMode
   );
 
+  button.classList.toggle(
+    "normal-sort",
+    !superVersionSortMode
+  );
+
   renderList();
+}
+
+// 共有リンク
+let sharedDataMode = false;
+let sharedUnlockedData = null;
+let sharedStarCharactersData = null;
+let sharedStarTalentsData = null;
+
+function copyShareLink() {
+  const data = {
+    unlocked: loadUnlockedTalents(),
+    starCharacters: loadStarCharacters(),
+    starTalents: loadStarTalents()
+  };
+
+  const encoded = btoa(
+    encodeURIComponent(JSON.stringify(data))
+  );
+
+  const url =
+    location.origin +
+    location.pathname +
+    "?data=" +
+    encoded;
+
+  navigator.clipboard.writeText(url);
+
+  alert("共有リンクをコピーしました");
+}
+
+  function loadSharedDataFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const dataText = params.get("data");
+
+  if (!dataText) return;
+
+  try {
+    const data = JSON.parse(
+      decodeURIComponent(atob(dataText))
+    );
+
+    sharedDataMode = true;
+    sharedUnlockedData = data.unlocked || {};
+    sharedStarCharactersData = data.starCharacters || {};
+    sharedStarTalentsData = data.starTalents || {};
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// 共有用ロック
+function disableControlsInSharedMode() {
+  if (!sharedDataMode) return;
+
+  document.querySelectorAll(`
+    .talent-check,
+    .talent-level,
+    .talent-star-button,
+    .star-button,
+    .unlock-all-button,
+    .unlock-nonresist-button,
+    .reset-talents-button,
+    #accountSelect,
+    .account-area button
+  `).forEach(el => {
+    el.disabled = true;
+    el.classList.add("shared-disabled");
+  });
 }
 </script>
 
