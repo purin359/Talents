@@ -1122,6 +1122,7 @@ const statusFilter = document.getElementById("statusFilter").value;
 
   function sumNpText(npText) {
   return String(npText ?? "")
+    .replace(/，/g, ",")
     .split(",")
     .map(v => Number(v.trim()))
     .filter(v => !isNaN(v))
@@ -1137,6 +1138,9 @@ const statusFilter = document.getElementById("statusFilter").value;
 
 // レアリティ別・合計NP別のレベル消費NP表
 function getLevelNpList(rarity, totalNp) {
+  rarity = String(rarity ?? "").trim();
+  totalNp = Number(totalNp);
+
   const table = {
     "EX": {
       125: [10,10,10,10,10,15,15,15,15,15],
