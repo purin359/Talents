@@ -1190,7 +1190,7 @@ function getTalentTotalNp(talent) {
   return sumNpText(talent["消費NP"]);
 }
 
-function getMaxTalentLevel(char, talent, title = "本能") {
+function getTalentMaxLevel(char, talent, title = "本能") {
   const totalNp = getTalentTotalNp(talent);
   const levelList = getLevelNpList(
     char["レアリティ"],
