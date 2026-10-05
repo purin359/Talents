@@ -1518,10 +1518,10 @@ function makeTalentHtml(title, talents, isSuper = false, talentSearch = "", char
     const isMax = char ? isTalentMax(char, t, savedLevel) : false;
     const talentStarOn = !!starTalents[key];
 
-    const maxLevel = char ? getTalentMaxLevel(char, t) : 0;
+    const maxLevel = char ? getTalentMaxLevel(char, t, title) : 0;
     const totalNp = getTalentTotalNp(t);
-    const usedNp = char ? getUsedNpByLevel(char, t, savedLevel) : 0;
-
+    const usedNp = char ? getUsedNpByLevel(char, t, savedLevel, title) : 0;
+    
     let controlHtml = "";
 
     if (maxLevel > 0) {
