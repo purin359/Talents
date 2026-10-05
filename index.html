@@ -1262,7 +1262,7 @@ function getUsedNpByLevel(char, talent, level, title = "本能") {
 
       const totalTalentNp = getTalentTotalNp(talent);
       const savedLevel = Number(unlocked[key] || 0);
-      const usedNp = getUsedNpByLevel(char, talent, savedLevel);
+    　const usedNp = getUsedNpByLevel(char, talent, savedLevel, title);
 
       const remaining = totalTalentNp - usedNp;
 
@@ -1295,7 +1295,7 @@ function getUsedNpByLevel(char, talent, level, title = "本能") {
         const key = makeTalentKey(char, title, index);
         const level = Number(unlocked[key] || 0);
 
-        total += getUsedNpByLevel(char, t, level);
+        total += getUsedNpByLevel(char, t, level, title);
       });
     });
   });
@@ -1323,7 +1323,7 @@ function getUsedNpByLevel(char, talent, level, title = "本能") {
 
         const savedLevel = Number(unlocked[key] || 0);
         const totalTalentNp = getTalentTotalNp(talent);
-        const usedNp = getUsedNpByLevel(char, talent, savedLevel);
+        const usedNp = getUsedNpByLevel(char, talent, savedLevel, title);
         const remainNp = totalTalentNp - usedNp;
 
         if (remainNp <= 0) return;
@@ -1965,8 +1965,8 @@ if (targetBox) {
 
       if (char && talent) {
         const totalNp = getTalentTotalNp(talent);
-        const trueMaxLevel = getTalentMaxLevel(char, talent);
-        const usedNp = getUsedNpByLevel(char, talent, level);
+        const trueMaxLevel = getTalentMaxLevel(char, talent, title);
+        const usedNp = getUsedNpByLevel(char, talent, level, title);
 
         if (trueMaxLevel > 0 && level > 0 && level < trueMaxLevel) {
           npText.textContent = `${usedNp}/${totalNp}NP`;
@@ -2063,7 +2063,7 @@ function toggleCharacterStar(characterId) {
         const key = makeTalentKey(char, title, index);
         const level = Number(unlocked[key] || 0);
 
-        if (!isTalentMax(char, talent, level)) {
+        if (!isTalentMax(char, talent, level, title)) {
           starTalents[key] = true;
         }
       });
@@ -2170,7 +2170,7 @@ superVersionButton.style.display =
 
       const key = makeTalentKey(char, title, index);
 
-      const maxLevel = getTalentMaxLevel(char, talent);
+      const maxLevel = getTalentMaxLevel(char, talent, title);
 
       // レベルあり → MAX
       if (maxLevel > 0) {
@@ -2267,7 +2267,7 @@ superVersionButton.style.display =
 
     const savedLevel = Number(unlocked[key] || 0);
 
-    const maxLevel = getTalentMaxLevel(char, talent);
+    const maxLevel = getTalentMaxLevel(char, talent, title);
 
     // レベルあり
     if (maxLevel > 0) {
@@ -2314,7 +2314,7 @@ superVersionButton.style.display =
         Number(unlocked[key] || 0);
 
       const maxLevel =
-        getTalentMaxLevel(char, talent);
+        getTalentMaxLevel(char, talent, title);
 
       // レベルあり
       if (maxLevel > 0) {
@@ -2394,9 +2394,9 @@ superVersionButton.style.display =
     const level = Number(unlocked[key] || 0);
 
     const totalNp = getTalentTotalNp(talent);
-    const maxLevel = getTalentMaxLevel(char, talent);
-    const usedNp = getUsedNpByLevel(char, talent, level);
-
+    const maxLevel = getTalentMaxLevel(char, talent, title);
+    const usedNp = getUsedNpByLevel(char, talent, level, title);
+    
     const npText = box.querySelector(".talent-np");
     const select = box.querySelector(".talent-level");
     const checkbox = box.querySelector(".talent-check");
@@ -2471,8 +2471,8 @@ function saveStarTalents(data) {
   localStorage.setItem(getTalentStarSaveKey(), JSON.stringify(data));
 }
 
-  function isTalentMax(char, talent, level) {
-  const maxLevel = getTalentMaxLevel(char, talent);
+  function isTalentMax(char, talent, level, title = "本能") {
+  const maxLevel = getTalentMaxLevel(char, talent, title);
 
   if (maxLevel > 0) {
     return level >= maxLevel;
