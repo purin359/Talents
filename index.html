@@ -1147,9 +1147,14 @@ const statusFilter = document.getElementById("statusFilter").value;
 }
 
 // レアリティ別・合計NP別のレベル消費NP表
-function getLevelNpList(rarity, totalNp) {
+function getLevelNpList(rarity, totalNp, title = "本能") {
   rarity = String(rarity ?? "").trim();
   totalNp = Number(totalNp);
+
+  // 超本能だけの特殊パターン
+  if (title === "超本能" && totalNp === 100) {
+    return [20,20,20,20,20];
+  }
 
   const table = {
     "EX": {
@@ -1170,7 +1175,6 @@ function getLevelNpList(rarity, totalNp) {
       215: [75,10,10,10,10,20,20,20,20,20]
     },
     "超激レア": {
-      100: [20,20,20,20,20],
       175: [15,15,15,15,15,20,20,20,20,20],
       225: [20,20,20,20,20,25,25,25,25,25],
       235: [75,15,15,15,15,20,20,20,20,20],
@@ -1181,23 +1185,30 @@ function getLevelNpList(rarity, totalNp) {
 
   return table[rarity]?.[totalNp] || null;
 }
-
+  
 function getTalentTotalNp(talent) {
   return sumNpText(talent["消費NP"]);
 }
 
-function getTalentMaxLevel(char, talent) {
+function getMaxTalentLevel(char, talent, title = "本能") {
   const totalNp = getTalentTotalNp(talent);
-  const levelList = getLevelNpList(char["レアリティ"], totalNp);
+  const levelList = getLevelNpList(
+    char["レアリティ"],
+    totalNp,
+    title
+  );
 
   return levelList ? levelList.length : 0;
 }
 
-function getUsedNpByLevel(char, talent, level) {
+function getUsedNpByLevel(char, talent, level, title = "本能") {
   const totalNp = getTalentTotalNp(talent);
-  const levelList = getLevelNpList(char["レアリティ"], totalNp);
+  const levelList = getLevelNpList(
+    char["レアリティ"],
+    totalNp,
+    title
+  );
 
-  // レベルなし本能
   if (!levelList) {
     return level > 0 ? totalNp : 0;
   }
