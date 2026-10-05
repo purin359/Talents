@@ -693,7 +693,7 @@ select {
 
 <div class="top-header">
 
-  <h1>本能一覧　Ver.15.6.0対応</h1>
+  <h1>本能一覧　Ver.15.7.0対応</h1>
 
   <div class="account-area">
     <select id="accountSelect" onchange="changeAccount()"></select>
@@ -1002,10 +1002,20 @@ const statusFilter = document.getElementById("statusFilter").value;
       ${
         char["超本能追加Ver"]
           ? `
-            <div class="version-badge super-ver">
-              超本能追加Ver:${escapeHtml(char["超本能追加Ver"])}
-            </div>
-          `
+              <div class="version-badge super-ver">
+                超本能追加Ver:${escapeHtml(char["超本能追加Ver"])}
+              </div>
+            `
+          : ""
+      }
+      
+      ${
+        char["超本能追加Ver(後半3つ)"]
+          ? `
+              <div class="version-badge super-ver">
+                超本能追加Ver(後半3つ):${escapeHtml(char["超本能追加Ver(後半3つ)"])}
+              </div>
+            `
           : ""
       }
 
@@ -1160,6 +1170,7 @@ function getLevelNpList(rarity, totalNp) {
       215: [75,10,10,10,10,20,20,20,20,20]
     },
     "超激レア": {
+      100: [20,20,20,20,20],
       175: [15,15,15,15,15,20,20,20,20,20],
       225: [20,20,20,20,20,25,25,25,25,25],
       235: [75,15,15,15,15,20,20,20,20,20],
@@ -2735,7 +2746,8 @@ function saveStarTalents(data) {
   return (
     char["本能追加Ver"] === latest ||
     char["魂攻撃追加Ver"] === latest ||
-    char["超本能追加Ver"] === latest
+    char["超本能追加Ver"] === latest　||
+    char["超本能追加Ver(後半3つ)"] === latest
   );
 }
 
